@@ -2,12 +2,1677 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Template</title>
+    <title>Starship Flight Simulator</title>
+    <style>
+        /* General body styles */
+        body {
+            margin: 0;
+            padding: 0;
+            background: #000; /* Black background for space */
+            color: #00ff00; /* Neon green text for the interface */
+            font-family: 'Courier New', monospace;
+            overflow: hidden; /* Prevent scrollbars */
+        }
+        
+        /* Babylon.js canvas styles */
+        #renderCanvas {
+            width: 100%;
+            height: 100vh; /* Occupy full viewport height */
+            display: block;
+            cursor: crosshair; /* Crosshair cursor for aiming */
+            touch-action: none; /* Disable default touch actions to prevent conflicts */
+        }
+        
+        /* UI styles */
+        #ui {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 100; /* Ensure it's above the canvas */
+            font-size: 16px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8); /* Shadow for better readability */
+            display: none;
+        }
+        
+        /* Health bar styles */
+        .health-bar {
+            width: 200px;
+            height: 10px;
+            border: 2px solid #00ff00; /* Green border */
+            background: rgba(0,0,0,0.5); /* Semi-transparent background */
+            margin: 10px 0;
+            border-radius: 5px; /* Rounded corners */
+            overflow: hidden; /* Hide overflow of the fill */
+        }
+        
+        .health-fill {
+            height: 100%;
+            transition: all 0.3s ease; /* Smooth transition for width and color changes */
+            border-radius: 3px; /* Rounded corners for the fill */
+        }
+        
+        /* On-screen controls styles */
+        #controls {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            z-index: 100;
+            font-size: 12px;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+            display: none;
+        }
+        
+        /* Central crosshair styles */
+        #crosshair {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%); /* Center the element */
+            width: 40px;
+            height: 40px;
+            border: 2px solid #00ff00; /* Green border */
+            border-radius: 50%; /* Circular shape */
+            z-index: 50;
+            pointer-events: none; /* Does not interfere with mouse events on the canvas */
+            display: none;
+        }
+        
+        #crosshair::before,
+        #crosshair::after {
+            content: '';
+            position: absolute;
+            background: #00ff00;
+        }
+        
+        #crosshair::before {
+            width: 20px;
+            height: 2px;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+        
+        #crosshair::after {
+            width: 2px;
+            height: 20px;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        /* Game over/victory message styles */
+        #gameMessage {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.8);
+            border: 2px solid #00ff00;
+            padding: 30px;
+            text-align: center;
+            font-size: 24px;
+            color: #00ff00;
+            z-index: 200;
+            display: none; /* Hidden by default */
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 255, 0, 0.5);
+        }
+
+        #gameMessage button {
+            background: #00ff00;
+            color: #000;
+            border: none;
+            padding: 10px 20px;
+            font-size: 18px;
+            cursor: pointer;
+            margin-top: 20px;
+            border-radius: 5px;
+            transition: background 0.3s ease;
+        }
+
+        #gameMessage button:hover {
+            background: #00cc00;
+        }
+
+        .starwars section {
+  position: absolute;
+  top: 45%;
+  left: 50%;
+  z-index: 1;
+}
+.starwars .start {
+  font-size: 200%;
+  width: 14em;
+  margin: -4em 0 0 -7em;
+  text-align: center;
+  cursor: pointer;
+}
+.starwars .start span {
+  color: #4bd5ee;
+}
+.starwars .intro {
+  width: 15em;
+  margin: 0 0 0 -7.5em;
+  font-size: 200%;
+  font-weight: 400;
+  color: #4bd5ee;
+  opacity: 0;
+  -webkit-animation: intro 6s ease-out 1s;
+          animation: intro 6s ease-out 1s;
+}
+.starwars .logo {
+  opacity: 0;
+  -webkit-animation: logo 9s ease-out 9s;
+          animation: logo 9s ease-out 9s;
+}
+.starwars .logo svg {
+  width: inherit;
+}
+.starwars .titles {
+  width: 14.65em;
+  margin: 0 0 0 -7.325em;
+  top: auto;
+  bottom: 0;
+  height: 50em;
+  font-size: 350%;
+  text-align: justify;
+  overflow: hidden;
+  transform-origin: 50% 100%;
+  transform: perspective(300px) rotateX(25deg);
+}
+.starwars .titles > div {
+  position: absolute;
+  top: 100%;
+  -webkit-animation: titles 81s linear 13s;
+          animation: titles 81s linear 13s;
+}
+.starwars .titles > div > p {
+  margin: 1.35em 0 1.85em 0;
+  line-height: 1.35em;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  color: yellow;
+}
+
+@-webkit-keyframes intro {
+  0% {
+    opacity: 0;
+  }
+  20% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes intro {
+  0% {
+    opacity: 0;
+  }
+  20% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+@-webkit-keyframes logo {
+  0% {
+    width: 18em;
+    margin: -9em 0 0 -9em;
+    transform: scale(2.75);
+    opacity: 1;
+  }
+  50% {
+    opacity: 1;
+    width: 18em;
+    margin: -9em 0 0 -9em;
+  }
+  100% {
+    transform: scale(0.1);
+    opacity: 0;
+    width: 18em;
+    margin: -9em 0 0 -9em;
+  }
+}
+@keyframes logo {
+  0% {
+    width: 18em;
+    margin: -9em 0 0 -9em;
+    transform: scale(2.75);
+    opacity: 1;
+  }
+  50% {
+    opacity: 1;
+    width: 18em;
+    margin: -9em 0 0 -9em;
+  }
+  100% {
+    transform: scale(0.1);
+    opacity: 0;
+    width: 18em;
+    margin: -9em 0 0 -9em;
+  }
+}
+@-webkit-keyframes titles {
+  0% {
+    top: 100%;
+    opacity: 1;
+  }
+  95% {
+    opacity: 1;
+  }
+  100% {
+    top: 20%;
+    opacity: 0;
+  }
+}
+@keyframes titles {
+  0% {
+    top: 100%;
+    opacity: 1;
+  }
+  95% {
+    opacity: 1;
+  }
+  100% {
+    top: 20%;
+    opacity: 0;
+  }
+}
+
+/* New Game Start Button Styles */
+#gameStartButton {
+    display: none;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 300;
+    text-align: center;
+}
+
+#gameStartButton button {
+    background: #00ff00;
+    color: #000;
+    border: none;
+    padding: 15px 30px;
+    font-size: 24px;
+    cursor: pointer;
+    border-radius: 5px;
+    transition: all 0.3s ease;
+    box-shadow: 0 0 15px rgba(0, 255, 0, 0.7);
+}
+
+#gameStartButton button:hover {
+    background: #00cc00;
+    transform: scale(1.05);
+}
+
+#gameStartButton p {
+    color: #00ff00;
+    margin-top: 20px;
+    font-size: 18px;
+    text-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
+}
+    </style>
 </head>
 <body>
+
+<article class="starwars">
+  <audio preload="auto" id="starwarsAudio">
+    <source src="https://s.cdpn.io/1202/Star_Wars_original_opening_crawl_1977.ogg" type="audio/ogg" />
+    <source src="https://s.cdpn.io/1202/Star_Wars_original_opening_crawl_1977.mp3" type="audio/mpeg" />
+  </audio>
+
+  <section class="start" id="initialStart">
+    <p>
+      Click here to begin <br> <span>Star Wars Arcade Tribute</span>
+    </p>
+  </section>
+   
+  <div class="animation" id="starwarsAnimation">
+    <section class="intro">
+      A long time ago, in a galaxy far, far away....
+    </section>
     
+    <section class="titles">
+      <div contenteditable="true" spellcheck="false">  
+        <p>
+          It is a period of civil war.
+          Rebel spaceships, striking
+          from a hidden base, have won
+          their first victory against
+          the evil Galactic Empire.
+        </p>
+
+        <p>
+          During the battle, Rebel
+          spies managed to steal secret
+          plans to the Empire's
+          ultimate weapon, the DEATH
+          STAR, an armored space
+          station with enough power to
+          destroy an entire planet.
+        </p>
+
+        <p>
+          Pursued by the Empire's
+          sinister agents, Princess
+          Leia races home aboard her
+          starship, custodian of the
+          stolen plan that can save
+          her people and restore
+          freedom to the galaxy....
+        </p>
+      </div>
+    </section>
+  
+    <section class="logo">
+      <svg version="1.0" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+        width="693.615px" height="419.375px" viewBox="0 0 693.615 419.375" enable-background="new 0 0 693.615 419.375"
+        xml:space="preserve">
+        <g id="Layer_2">
+          <g>
+            <path fill="#FFE81F" d="M148.718,221.207l8.67,25.461c4.691,13.768,8.879,24.779,9.425,24.779c0.009,0,0.017-0.004,0.024-0.01
+              c0.6-0.53,17.57-49.811,17.57-49.811h32.89l-39.68,115.619h-22.86c0,0-24.4-70.471-24.3-70.739l-25.47,69.851h-22.63
+              l-39.18-115.15l32.73,0.021c0,0,17.929,50.821,18.168,50.821c0.001,0,0.001-0.001,0.002-0.002l17.89-50.841H148.718 M32.003,213.2
+              l3.601,10.584l39.18,115.149l1.845,5.424h5.729h22.63h5.598l1.918-5.26l17.685-48.5c1.524,4.434,3.171,9.213,4.818,13.988
+              c6.089,17.655,12.191,35.277,12.191,35.277l1.864,5.383h5.696h22.86h5.712l1.854-5.403l39.68-115.618l3.637-10.598h-11.204h-32.89
+              h-5.706l-1.858,5.396c-2.974,8.635-6.921,20.031-10.296,29.676c-0.509-1.463-1.039-3.001-1.587-4.611l-8.669-25.46l-1.846-5.421
+              h-5.727h-36.75h-5.666l-1.881,5.345l-10.453,29.706c-3.453-9.706-7.456-21.017-10.516-29.691l-1.882-5.334l-5.657-0.004
+              l-32.73-0.021L32.003,213.2L32.003,213.2z"/>
+          </g>
+          <g>
+            <path fill="#FFE81F" d="M655.258,220.758l-0.075,30.305c0,0-32.643-0.109-49.239-0.109c-5.521,0-9.266,0.013,9.444,0.045
+              c-2.86,0.521-4.681,6.602-3.87,9.271c0.399,1.35,3.391,5.76,6.63,9.81c3.229,4.051,8.54,10.681,11.78,14.729
+              c8.319,10.381,9.46,12.43,10.229,18.391c1.25,9.681-3.329,20.16-11.829,27.07c-8.518,6.93-8.145,6.979-71.383,6.979
+              c-0.916,0-1.835,0-2.777,0c-38.46-0.01-58.8-0.329-61.761-0.989c-5.26-1.19-13.64-8.03-35.79-29.28
+              c-7.967-7.636-15.309-14.322-15.686-14.324c-0.01,0-0.015,0.006-0.015,0.016l-0.261,44.579l-35.899-0.159l-0.221-114.98h45.271
+              h34.79c24.13,0.871,40.46,24.91,37.21,40.24c-0.74,3.479-2.62,8.521-4.181,11.2c-3.21,5.5-11.38,12.56-18.011,15.591
+              c-2.449,1.108-4.449,2.398-4.449,2.858c0,1.71,8.061,9.649,11.08,10.91c2.579,1.079,10.09,1.319,43.21,1.319
+              c3.882,0,7.408,0.002,10.608,0.002c33.293,0,31.618-0.24,34.19-5.741c1.801-3.83,0.431-6.12-12.239-20.39
+              c-16.051-15.971-14.37-23.621-14.48-29.271c-0.229-6.77,5.102-28.069,32.812-28.069L655.258,220.758 M440.188,273.878
+              c15.37,0,18.49-0.239,21.761-1.66c11.04-4.8,11.63-18.979,1.04-25.271c-2.319-1.381-5.3-1.609-21.96-1.7l-19.279-0.101
+              c0.159,0.15-0.061,27.57-0.061,27.57S426.518,273.878,440.188,273.878 M663.277,212.758h-8.021h-73.8
+              c-16.032,0-25.515,6.328-30.646,11.637c-8.347,8.633-10.313,19.504-10.162,24.629c0.008,0.427,0.003,0.865-0.002,1.322
+              c-0.073,8.329,1.154,17.758,16.659,33.246c3.065,3.452,8.193,9.239,10.131,12.115c-4.238,0.521-14.98,0.521-26.262,0.521h-4.792
+              l-5.816-0.002c-19.904,0-36.688-0.057-40.128-0.736c-0.481-0.314-1.156-0.854-1.898-1.498c6.877-4.235,13.83-10.799,17.104-16.412
+              c1.987-3.413,4.178-9.243,5.098-13.568c2.04-9.625-1.325-21.236-9.001-31.068c-8.956-11.471-21.985-18.334-35.746-18.83
+              l-0.145-0.006h-0.145h-34.79h-45.271h-8.016l0.016,8.017l0.221,114.979l0.016,7.949l7.949,0.035l35.899,0.159l7.988,0.035
+              l0.047-7.988l0.155-26.706c0.733,0.696,1.491,1.419,2.269,2.165c24.227,23.24,32.359,29.679,39.562,31.308
+              c1.979,0.441,5.253,1.172,63.523,1.188h2.779c31.546,0,47.38,0,56.799-0.91c10.789-1.043,14.259-3.49,19.461-7.725l0.173-0.141
+              c10.685-8.687,16.323-21.83,14.715-34.3c-1.048-8.11-3.194-11.479-11.922-22.368l-2.594-3.24
+              c-3.04-3.799-6.713-8.387-9.175-11.475c-1.986-2.484-3.546-4.689-4.487-6.133c1.236-0.003,2.841-0.005,4.918-0.005
+              c16.395,0,48.887,0.108,49.213,0.11l8.008,0.026l0.02-8.008l0.075-30.306L663.277,212.758L663.277,212.758z M429.739,265.586
+              c0.013-2.021,0.025-4.287,0.038-6.557c0.01-2,0.019-4.004,0.022-5.84l11.187,0.058c6.429,0.035,16.103,0.088,17.989,0.623
+              c2.407,1.461,3.75,3.72,3.604,6.06c-0.08,1.264-0.682,3.588-3.821,4.951c-1.75,0.76-4.54,0.997-18.57,0.997
+              C435.738,265.878,432.305,265.749,429.739,265.586L429.739,265.586z"/>
+          </g>
+          <g>
+            <path fill="#FFE81F" d="M312.908,220.287l40.29,115.92l-32.83,0.15l-5.45-17.41l-58.7-0.471l-5.18,17.431l-32.5-0.341
+              l39.78-115.229L312.908,220.287 M286.507,237.283c-0.083,0.333-5.144,14.219-10.222,28.104c-5.12,14-10.257,28-10.328,28.109
+              c0,0.001-0.001,0.001,0,0.001l0,0c0,0,0,0,0-0.001c0.136-0.04,18.316-0.08,29.968-0.08c5.453,0,9.475,0.009,9.55,0.029
+              c0.001,0.004,0.001,0.005,0.001,0.005s0-0.001,0-0.003c0,0,0,0-0.001-0.002C305.271,292.916,286.566,237.959,286.507,237.283
+              c0.001-0.004,0.001-0.006,0.001-0.006l0,0C286.507,237.277,286.507,237.279,286.507,237.283 M318.595,212.282l-5.693,0.005
+              l-54.59,0.051l-5.696,0.005l-1.859,5.386l-39.78,115.229l-3.623,10.494l11.102,0.115l32.5,0.341l6.033,0.063l1.719-5.782
+              l3.466-11.662l46.854,0.375l3.708,11.848l1.765,5.638l5.907-0.026l32.829-0.15l11.195-0.052l-3.676-10.574l-40.29-115.92
+              L318.595,212.282L318.595,212.282z M277.472,285.424c1.515-4.129,3.556-9.71,6.327-17.289c0.869-2.376,1.664-4.551,2.393-6.545
+              c0.663,1.956,1.385,4.084,2.169,6.398c0.646,1.906,3.485,10.27,5.92,17.428C287.041,285.416,281.591,285.417,277.472,285.424
+              L277.472,285.424z"/>
+          </g>
+          <g>
+            <path fill="#FFE81F" d="M326.488,81.928v28.6h-57.28v87.47h-34.15v-87.54l-66.86,0.19c-8.06,0-9.14,6.42-9.14,8.88
+              c0,3.02,1.97,6.04,12.79,19.74c7.02,8.9,13.47,17.78,14.32,19.72c4.64,10.68-1.36,27.32-12.29,34.08
+              c-7.79,4.813-6.459,4.931-64.308,4.931c-2.974,0-6.096,0-9.392,0h-62.27v-32.13h97.9l2.89-2.01c1.95-1.36,3.08-3.23,3.51-5.79
+              c0.6-3.68,0.29-4.16-11.8-17.78c-14.29-16.1-15.8-19.04-15.06-29.32c0.84-11.73,11.3-28.77,29.58-28.77L326.488,81.928
+               M334.488,73.916l-8.013,0.012l-181.56,0.27c-10.458,0-20.171,4.518-27.342,12.722c-5.814,6.652-9.63,15.429-10.206,23.477
+              c-0.973,13.511,2.137,18.393,17.056,35.202c4.33,4.877,8.447,9.516,9.821,11.486c-0.022,0.079-0.042,0.13-0.054,0.159
+              c-0.015,0.012-0.038,0.03-0.07,0.052l-0.822,0.572H37.908h-8v8v32.13v8h8h62.27h4.937h4.455c28.522,0,42.6-0.027,50.894-0.635
+              c9.49-0.695,12.518-2.323,17.054-5.14l0.566-0.351c14.262-8.821,21.612-29.827,15.422-44.074
+              c-1.91-4.358-14.003-19.746-15.376-21.486c-3.796-4.807-10.062-12.74-11.054-15.036c0.024-0.193,0.071-0.393,0.121-0.532
+              c0.165-0.042,0.481-0.098,1.001-0.098l58.86-0.167v79.517v8h8h34.15h8v-8v-79.47h49.28h8v-8v-28.6V73.916L334.488,73.916z"/>
+          </g>
+          <g>
+            <path fill="#FFE81F" d="M419.548,82.857l40.18,116.22l-32.77-0.18l-5.32-17.41l-58.439-0.26l-5.221,16.77h-33.369l39.739-115.14
+              H419.548 M372.737,156.478l39.801-0.05c0.001,0,0.001,0.001,0.001,0.001c0.136,0-19.342-57.201-19.472-57.241l0,0
+              C392.925,99.183,372.288,156.478,372.737,156.478 M425.247,74.857h-5.699h-55.2h-5.701l-1.86,5.39l-39.74,115.141l-3.662,10.61
+              h11.225h33.37h5.889l1.75-5.623l3.461-11.121l46.632,0.207l3.599,11.774l1.721,5.629l5.887,0.033l32.77,0.18l11.297,0.062
+              l-3.691-10.676l-40.18-116.22L425.247,74.857L425.247,74.857z M383.851,148.464c2.468-7.027,5.904-16.657,9.014-25.312
+              c2.948,8.644,6.209,18.245,8.588,25.29L383.851,148.464L383.851,148.464z"/>
+          </g>
+          <g>
+            <path fill="#FFE81F" d="M532.396,82.857c25.921,0,43.91,0.37,47.37,0.97c8,1.39,15.23,5.66,20.65,12.22
+              c5.67,6.86,6.97,10.14,7.71,19.54c1.061,13.27-5.25,24.72-17.7,32.15c-3.63,2.17-7.359,4.28-8.29,4.7
+              c-1.43,0.65-1.239,1.27,1.32,4.27c1.649,1.93,4.51,4.68,6.35,6.11l3.36,2.61l62.08,0.89l0.609,31.68h-38.061
+              c-29.439,0-38.86-0.27-41.62-1.2c-4.13-1.4-14.069-9.82-34.271-29.04l-14.42-13.72l0.152,43.96h-37.043V82.857H532.396
+               M526.938,134.627h19.671c19.141,0,19.739-0.06,22.47-2.11c4.881-3.66,6.609-7.43,6.091-13.22c-0.53-5.97-2.83-9.08-8.601-11.58
+              c-3.25-1.42-6.381-1.65-21.721-1.65h-17.91V134.627 M532.396,74.857h-41.8h-8v8v115.14v8h8h37.043h8.028l-0.028-8.028
+              l-0.088-25.216l0.84,0.799c24.986,23.773,32.356,29.173,37.218,30.821c3.733,1.259,9.982,1.624,44.188,1.624h38.061h8.154
+              l-0.156-8.154l-0.609-31.68l-0.148-7.734l-7.734-0.111l-59.402-0.851l-1.245-0.967c-0.396-0.309-0.876-0.717-1.389-1.179
+              c0.446-0.264,0.854-0.507,1.207-0.717c15.003-8.953,22.866-23.407,21.569-39.653c-0.863-10.959-2.82-15.896-9.52-24
+              c-6.584-7.969-15.621-13.298-25.447-15.005C575.678,74.999,548.257,74.857,532.396,74.857L532.396,74.857z M534.938,114.067h9.91
+              c14.027,0,16.806,0.233,18.518,0.981c3.25,1.408,3.58,2.091,3.835,4.957c0.256,2.848-0.097,3.994-2.922,6.112
+              c-0.093,0.069-0.164,0.123-0.223,0.166c-1.865,0.345-8.786,0.345-17.447,0.345h-11.67L534.938,114.067L534.938,114.067z"/>
+          </g>
+        </g>
+      </svg>
+    </section>
+  </div>
+</article>
+
+<!-- New Game Start Button -->
+<div id="gameStartButton">
+  <button>START GAME</button>
+  <p>Loading complete</p>
+</div>
+
+<canvas id="renderCanvas"></canvas>
+<div id="crosshair"></div>
+
+<div id="ui">
+    <div>Ship Health</div>
+    <div class="health-bar">
+        <div id="playerHealth" class="health-fill" style="width: 100%; background: #00ff00;"></div>
+    </div>
+    <div>Score: <span id="score">0</span></div>
+    <div>Wave: <span id="wave">1</span></div>
+    <div>Enemies: <span id="enemies">0</span></div>
+    <div>Status: <span id="status">Loading...</span></div>
+</div>
+
+<div id="controls">
+    <div>CONTROLS:</div>
+    <div>Mouse: Move ship</div>
+    <div>Left Click: Fire laser</div>
+    <div>Right Click: Launch torpedo</div>
+    <div>W: Forward / S: Backward</div>
+    <div>A: Strafe left / D: Strafe right</div>
+    <div>Q: Roll left / E: Roll right (barrel roll)</div>
+    <div>Up/Down Arrow: Ascend/descend (Pitch)</div>
+</div>
+
+<div id="gameMessage">
+    <p id="messageText"></p>
+    <button id="restartButton">Restart</button>
+</div>
+
+<script src="https://cdn.babylonjs.com/babylon.js"></script>
+<script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
+
+<script>
+    console.log("Starting simulator...");
+    
+    class SpaceFlightSimulator {
+        constructor() {
+            console.log("Constructor started");
+            this.canvas = document.getElementById('renderCanvas');
+            this.engine = new BABYLON.Engine(this.canvas, true);
+            this.scene = null;
+            this.camera = null;
+            this.playerShip = null;
+            this.enemyShips = [];
+            this.supportShips = []; // Array to hold support ships
+            this.projectiles = [];
+            
+            this.playerHealth = 100;
+            this.score = 0;
+            this.currentWave = 1;
+            this.waveInProgress = false; // Flag to check if a wave is active
+            
+            this.mousePosition = { x: 0, y: 0 };
+            this.keys = {};
+            
+            this.PLAYER_SPEED = 0.5; // Base player movement speed
+            this.PLAYER_ROTATION_SPEED = 0.05; // Player rotation speed
+            this.BASE_ENEMY_SPEED = 0.08; // Base enemy speed, will be modified by wave
+            this.LASER_SPEED = 2; // Player laser speed
+            this.TORPEDO_SPEED = 1.5; // Player torpedo speed
+
+            this.lastLaserTime = 0;
+            this.laserCooldown = 200; // Player laser cooldown in ms
+            this.lastTorpedoTime = 0;
+            this.torpedoCooldown = 1000; // Player torpedo cooldown in ms
+
+            // Variables for enemy behavior
+            this.ENEMY_FIRE_RANGE = 30; // Max distance for enemies to fire
+            this.ENEMY_LONG_RANGE = 50; // Distance for long-range attacks
+            this.ENEMY_STOP_DISTANCE = 10; // Distance at which enemies stop from the player
+            this.ENEMY_RETREAT_SPEED_MULTIPLIER = 1.5; // Speed multiplier when retreating
+            this.ENEMY_LASER_SPEED = this.LASER_SPEED * 0.5; // Enemy laser speed (0.5 of player speed)
+            this.ENEMY_LASER_DAMAGE = 5; // Enemy laser damage (Reduced from 10 to 5)
+            this.COLLISION_DISTANCE = 2.5; // Distance at which collision damage occurs (Increased from 2 to 2.5)
+            this.COLLISION_DAMAGE = 10; // Collision damage (Reduced from 20 to 10)
+
+            // Variables for support ship behavior
+            this.SUPPORT_SHIP_SPEED = 0.15; // Support ship movement speed
+            this.SUPPORT_SHIP_FIRE_RANGE = 40; // Max distance for support ships to fire
+            this.SUPPORT_SHIP_LASER_SPEED = 2.5; // Support ship laser speed
+            this.SUPPORT_SHIP_LASER_DAMAGE = 10; // Support ship laser damage
+            this.SUPPORT_SHIP_COOLDOWN = 500; // Support ship laser cooldown in ms
+            this.SUPPORT_SHIP_HEALTH = 50; // Support ship health
+
+            this.updateStatus("Initializing engines...");
+            this.init();
+        }
+        
+        // Updates the status message on the interface
+        updateStatus(message) {
+            console.log("Status:", message);
+            const statusEl = document.getElementById('status');
+            if (statusEl) {
+                statusEl.textContent = message;
+            }
+        }
+        
+        // Initializes the game
+        async init() {
+            try {
+                this.updateStatus("Creating scene...");
+                this.createScene();
+                
+                this.updateStatus("Creating player ship...");
+                await this.createPlayerShip();
+
+                this.updateStatus("Adding background elements...");
+                await this.createBackgroundShip();
+                
+                this.updateStatus("Setting up controls...");
+                this.setupControls();
+                
+                this.updateStatus("Starting first wave...");
+                this.startWave(); // Call startWave for the first wave
+                
+                this.updateStatus("Ready for combat!");
+                this.startGameLoop();
+                
+            } catch (error) {
+                console.error("Error in init:", error);
+                this.updateStatus("Error: " + error.message);
+            }
+        }
+        
+        // Creates the 3D scene
+        createScene() {
+            this.scene = new BABYLON.Scene(this.engine);
+            this.scene.clearColor = new BABYLON.Color3(0, 0, 0); // Black background
+            
+            // Third-person camera setup
+            this.camera = new BABYLON.FollowCamera("camera", new BABYLON.Vector3(0, 5, -10), this.scene);
+            this.camera.radius = 15; // Distance from camera to ship
+            this.camera.heightOffset = 5; // Camera height
+            this.camera.rotationOffset = 180; // Initial rotation to see the back of the ship
+            this.camera.cameraAcceleration = 0.05; // Acceleration for smooth movement
+            this.camera.maxCameraSpeed = 10; // Max camera speed
+            
+            // Light for the scene
+            const light = new BABYLON.HemisphericLight("light", new BABYLON.Vector3(0, 1, 0), this.scene);
+            light.intensity = 0.7;
+            
+            // Create background stars
+            this.createStars();
+            
+            // Start the Babylon.js render loop
+            this.engine.runRenderLoop(() => {
+                this.scene.render();
+            });
+            
+            console.log("Scene created successfully");
+        }
+        
+        // Creates a field of background stars
+        createStars() {
+            for (let i = 0; i < 500; i++) {
+                const star = BABYLON.MeshBuilder.CreateSphere(`star${i}`, {diameter: 0.1}, this.scene);
+                const material = new BABYLON.StandardMaterial(`starMat${i}`, this.scene);
+                material.emissiveColor = new BABYLON.Color3(1, 1, 1); // Bright white color
+                star.material = material;
+                
+                // Random far position to simulate a starfield
+                star.position = new BABYLON.Vector3(
+                    (Math.random() - 0.5) * 400,
+                    (Math.random() - 0.5) * 400,
+                    (Math.random() - 0.5) * 400
+                );
+            }
+        }
+
+        // Creates a large background ship
+        async createBackgroundShip() {
+            this.updateStatus("Loading background ship model...");
+            try {
+                const rootUrl = "https://raw.githubusercontent.com/ravendano014/starship/main/";
+                const fileName = "Starship4.stl";
+                
+                BABYLON.SceneLoader.RegisterPlugin(new BABYLON.STLFileLoader());
+                
+                const result = await BABYLON.SceneLoader.ImportMeshAsync("", rootUrl, fileName, this.scene);
+                
+                if (result.meshes && result.meshes.length > 0) {
+                    let backgroundShip = result.meshes[0]; 
+                    // Merge sub-meshes if the model has multiple for better control
+                    if (result.meshes.length > 1) {
+                        const mainMesh = BABYLON.Mesh.MergeMeshes(result.meshes, true, true, undefined, false, true);
+                        if (mainMesh) {
+                            backgroundShip = mainMesh;
+                        }
+                    }
+
+                    // Position it far away and make it large
+                    backgroundShip.position = new BABYLON.Vector3(100, -20, 150);
+                    backgroundShip.scaling = new BABYLON.Vector3(1, 1, 1); // Make it large
+                    backgroundShip.rotation = new BABYLON.Vector3(0, Math.PI / 4, 0); // Rotate it for a better view
+                    
+                    // Blue wireframe material
+                    const material = new BABYLON.StandardMaterial("backgroundShipMat", this.scene);
+                    material.wireframe = true;
+                    material.emissiveColor = new BABYLON.Color3(0, 0, 1); // Blue wireframe
+                    backgroundShip.material = material;
+                    
+                    console.log("✅ Background ship model loaded successfully");
+                    this.updateStatus("✅ Background ship loaded");
+                } else {
+                    throw new Error("No meshes found in the background ship's STL file");
+                }
+
+            } catch (error) {
+                console.warn("❌ Error loading background ship STL:", error);
+                this.updateStatus("❌ Could not load background ship");
+            }
+        }
+
+        
+        // Loads the player ship's STL model or creates a backup
+        async createPlayerShip() {
+            this.updateStatus("Loading player STL model...");
+            
+            try {
+                // Load the STL model directly from the URL
+                const rootUrl = "https://raw.githubusercontent.com/ravendano014/starship/main/";
+                const fileName = "Starship.stl";
+                
+                // Ensure the STL loader is registered
+                BABYLON.SceneLoader.RegisterPlugin(new BABYLON.STLFileLoader());
+                
+                const result = await BABYLON.SceneLoader.ImportMeshAsync("", rootUrl, fileName, this.scene);
+                
+                if (result.meshes && result.meshes.length > 0) {
+                    this.playerShip = result.meshes[0];
+                    // Merge sub-meshes if the model has multiple for better control
+                    if (result.meshes.length > 1) {
+                        const mainMesh = BABYLON.Mesh.MergeMeshes(result.meshes, true, true, undefined, false, true);
+                        if (mainMesh) {
+                            this.playerShip = mainMesh;
+                        }
+                    }
+                    
+                    this.playerShip.position = new BABYLON.Vector3(0, 0, 0);
+                    this.playerShip.scaling = new BABYLON.Vector3(0.01, 0.01, 0.01); // Scale to adjust size (adjusted from 0.1 to 0.01)
+                    this.playerShip.rotation = new BABYLON.Vector3(0, 0, 0);
+                    
+                    // Bright green wireframe material
+                    const material = new BABYLON.StandardMaterial("playerMaterial", this.scene);
+                    material.wireframe = true;
+                    material.emissiveColor = new BABYLON.Color3(0, 1, 0); // Bright green
+                    material.diffuseColor = new BABYLON.Color3(0, 1, 0);
+                    material.specularColor = new BABYLON.Color3(0, 0, 0);
+                    this.playerShip.material = material;
+                    
+                    // Link the camera to the player's ship
+                    this.camera.lockedTarget = this.playerShip;
+
+                    console.log("✅ Player STL model loaded successfully");
+                    this.updateStatus("✅ STL ship loaded in green wireframe");
+                    return;
+                } else {
+                    throw new Error("No meshes found in the player's STL file");
+                }
+                
+            } catch (error) {
+                console.warn("❌ Error loading player STL:", error);
+                this.updateStatus("❌ STL error, using backup ship...");
+                this.createBackupPlayerShip();
+            }
+        }
+        
+        // Creates a backup ship if the STL model fails to load
+        createBackupPlayerShip() {
+            // Create backup ship with basic geometry
+            const parts = [];
+            
+            const body = BABYLON.MeshBuilder.CreateCylinder("body", {height: 4, diameterTop: 0.5, diameterBottom: 1.5}, this.scene);
+            body.rotation.x = Math.PI / 2;
+            parts.push(body);
+            
+            const wing1 = BABYLON.MeshBuilder.CreateBox("wing1", {width: 3, height: 0.2, depth: 1}, this.scene);
+            wing1.position.z = -1;
+            parts.push(wing1);
+            
+            const engine1 = BABYLON.MeshBuilder.CreateCylinder("engine1", {height: 1, diameter: 0.3}, this.scene);
+            engine1.position.set(-1.2, 0, -1.5);
+            engine1.rotation.x = Math.PI / 2;
+            parts.push(engine1);
+            
+            const engine2 = BABYLON.MeshBuilder.CreateCylinder("engine2", {height: 1, diameter: 0.3}, this.scene);
+            engine2.position.set(1.2, 0, -1.5);
+            engine2.rotation.x = Math.PI / 2;
+            parts.push(engine2);
+            
+            // Merge all parts into a single mesh
+            this.playerShip = BABYLON.Mesh.MergeMeshes(parts, true);
+            this.playerShip.position = new BABYLON.Vector3(0, 0, 0);
+            
+            // Green wireframe material
+            const material = new BABYLON.StandardMaterial("playerMaterial", this.scene);
+            material.wireframe = true;
+            material.emissiveColor = new BABYLON.Color3(0, 1, 0);
+            this.playerShip.material = material;
+
+            this.camera.lockedTarget = this.playerShip;
+            
+            console.log("Backup player ship created");
+        }
+        
+        // Loads the enemy ship's STL model or creates a backup
+        async createEnemyShip() {
+            let enemyShip = null;
+            
+            try {
+                // Load the STL model directly from the URL
+                const rootUrl = "https://raw.githubusercontent.com/ravendano014/starship/main/";
+                const fileName = "Starship3.stl";
+
+                BABYLON.SceneLoader.RegisterPlugin(new BABYLON.STLFileLoader());
+                
+                const result = await BABYLON.SceneLoader.ImportMeshAsync("", rootUrl, fileName, this.scene);
+                
+                if (result.meshes && result.meshes.length > 0) {
+                    enemyShip = result.meshes[0];
+                     // Merge sub-meshes if the model has multiple
+                    if (result.meshes.length > 1) {
+                        const mainMesh = BABYLON.Mesh.MergeMeshes(result.meshes, true, true, undefined, false, true);
+                        if (mainMesh) {
+                            enemyShip = mainMesh;
+                        }
+                    }
+                    enemyShip.scaling = new BABYLON.Vector3(0.2, 0.2, 0.2); // Scale to adjust size
+                    console.log("Enemy STL model loaded");
+                } else {
+                    throw new Error("No meshes found in the enemy's STL file");
+                }
+                
+            } catch (error) {
+                console.warn("Error loading enemy STL:", error);
+                // Create backup enemy ship (simple box)
+                enemyShip = BABYLON.MeshBuilder.CreateBox("enemy", {width: 1.5, height: 0.5, depth: 2}, this.scene);
+            }
+            
+            // Red wireframe material
+            const material = new BABYLON.StandardMaterial("enemyMaterial", this.scene);
+            material.wireframe = true;
+            material.emissiveColor = new BABYLON.Color3(1, 0, 0); // Bright red
+            material.diffuseColor = new BABYLON.Color3(1, 0, 0);
+            enemyShip.material = material;
+            
+            // Random position on the horizon (beyond the player's initial view)
+            const angle = Math.random() * Math.PI * 2; // Random angle around the player
+            const distance = 50 + Math.random() * 50; // Distance between 50 and 100 units
+            enemyShip.position = new BABYLON.Vector3(
+                Math.cos(angle) * distance,
+                (Math.random() - 0.5) * 20, // Random height
+                Math.sin(angle) * distance
+            );
+            
+            // Enemy ship properties are now scaled by wave number for progressive difficulty
+            enemyShip.health = 30 + (this.currentWave - 1) * 5; // Start with 30 health, increase by 5 per wave
+            enemyShip.maxHealth = enemyShip.health; 
+            enemyShip.lastShot = 0;
+            // Enemy fire rate decreases with each wave
+            enemyShip.fireRate = 3000 + Math.random() * 2000 - (this.currentWave - 1) * 100;
+            enemyShip.canFire = true;
+            enemyShip.state = 'APPROACHING'; // Initial state
+            enemyShip.retreatTargetDistance = this.ENEMY_FIRE_RANGE + 15; // Will move 15 units further than fire range
+            
+            // New properties for evasive maneuvers
+            enemyShip.evasiveTimer = 0;
+            enemyShip.evasiveDuration = 500 + Math.random() * 2000; // Evasive maneuver duration
+            enemyShip.evasiveDirection = BABYLON.Vector3.Zero();
+            // Base speed is now scaled by wave number
+            enemyShip.currentSpeed = this.BASE_ENEMY_SPEED + (this.currentWave - 1) * 0.01;
+            
+            // New logic for state changes and erratic behavior
+            enemyShip.state = 'APPROACHING';
+            enemyShip.stateTimer = 0;
+            enemyShip.stateChangeInterval = 2000 + Math.random() * 5000; // Time before considering a state change
+            enemyShip.patrolDirection = new BABYLON.Vector3(
+                (Math.random() - 0.5) * 2,
+                (Math.random() - 0.5) * 2,
+                0
+            ).normalize();
+
+            // New properties for random rolling behavior
+            enemyShip.rollAngleTarget = 0;
+            enemyShip.lastRollTime = performance.now();
+            enemyShip.rollInterval = 5000 + Math.random() * 5000; // Time before a new roll
+            enemyShip.rollDuration = 1000 + Math.random() * 500; // Duration of the roll movement
+            
+            // Create health bar for the enemy (a plane above the ship)
+            const healthBar = BABYLON.MeshBuilder.CreatePlane("enemyHealthBar", {size: 2}, this.scene);
+            healthBar.parent = enemyShip;
+            healthBar.position.y = 2; // Position above the ship
+            healthBar.billboardMode = BABYLON.Mesh.BILLBOARDMODE_ALL; // Always faces the camera
+            
+            const healthMaterial = new BABYLON.StandardMaterial("enemyHealthMat", this.scene);
+            healthMaterial.emissiveColor = new BABYLON.Color3(0, 1, 0); // Initially green
+            healthBar.material = healthMaterial;
+            healthBar.scaling.x = 1; // 100% width
+
+            enemyShip.healthBar = healthBar; // Assign the health bar to the enemy ship
+
+            return enemyShip;
+        }
+
+        // Creates a support ship (ally)
+        async createSupportShip() {
+            let supportShip = null;
+            try {
+                const rootUrl = "https://raw.githubusercontent.com/ravendano014/starship/main/";
+                const fileName = "Starship5.stl"; // Using Starship5.stl for support ships
+
+                BABYLON.SceneLoader.RegisterPlugin(new BABYLON.STLFileLoader());
+                
+                const result = await BABYLON.SceneLoader.ImportMeshAsync("", rootUrl, fileName, this.scene);
+                
+                if (result.meshes && result.meshes.length > 0) {
+                    supportShip = result.meshes[0];
+                    if (result.meshes.length > 1) {
+                        const mainMesh = BABYLON.Mesh.MergeMeshes(result.meshes, true, true, undefined, false, true);
+                        if (mainMesh) {
+                            supportShip = mainMesh;
+                        }
+                    }
+                    supportShip.scaling = new BABYLON.Vector3(0.015, 0.015, 0.015); // Slightly smaller than player ship
+                    console.log("Support STL model loaded");
+                } else {
+                    throw new Error("No meshes found in the support ship's STL file");
+                }
+                
+            } catch (error) {
+                console.warn("Error loading support STL:", error);
+                // Backup support ship (simple cone)
+                supportShip = BABYLON.MeshBuilder.CreateCylinder("support", {diameterTop: 0.5, diameterBottom: 1, height: 1.5}, this.scene);
+                supportShip.rotation.x = Math.PI / 2; // Point forward
+            }
+
+            // Green wireframe material for support ships
+            const material = new BABYLON.StandardMaterial("supportMaterial", this.scene);
+            material.wireframe = true;
+            material.emissiveColor = new BABYLON.Color3(0, 1, 0.5); // Slightly different green
+            material.diffuseColor = new BABYLON.Color3(0, 1, 0.5);
+            supportShip.material = material;
+
+            // Random position near the player
+            const angle = Math.random() * Math.PI * 2;
+            const distance = 10 + Math.random() * 10; // Between 10 and 20 units from player
+            supportShip.position = this.playerShip.position.add(new BABYLON.Vector3(
+                Math.cos(angle) * distance,
+                (Math.random() - 0.5) * 5,
+                Math.sin(angle) * distance
+            ));
+            
+            supportShip.health = this.SUPPORT_SHIP_HEALTH;
+            supportShip.maxHealth = this.SUPPORT_SHIP_HEALTH;
+            supportShip.lastShot = 0;
+            supportShip.fireRate = this.SUPPORT_SHIP_COOLDOWN;
+            supportShip.currentSpeed = this.SUPPORT_SHIP_SPEED;
+
+            // Create health bar for the support ship
+            const healthBar = BABYLON.MeshBuilder.CreatePlane("supportHealthBar", {size: 1}, this.scene);
+            healthBar.parent = supportShip;
+            healthBar.position.y = 1; // Position above the ship
+            healthBar.billboardMode = BABYLON.Mesh.BILLBOARDMODE_ALL; // Always faces the camera
+            
+            const healthMaterial = new BABYLON.StandardMaterial("supportHealthMat", this.scene);
+            healthMaterial.emissiveColor = new BABYLON.Color3(0, 1, 0); // Initially green
+            healthBar.material = healthMaterial;
+            healthBar.scaling.x = 1; // 100% width
+            supportShip.healthBar = healthBar; // Assign the health bar to the support ship
+
+            return supportShip;
+        }
+        
+        // Starts a new wave of enemies
+        async startWave() {
+            if (this.waveInProgress) return; // Prevent starting multiple waves at once
+            this.waveInProgress = true;
+            
+            // Clear existing enemies and support ships
+            this.enemyShips.forEach(enemy => { if(enemy && !enemy.isDisposed()) { if(enemy.healthBar) enemy.healthBar.dispose(); enemy.dispose(); } });
+            this.enemyShips = [];
+            this.supportShips.forEach(support => { if(support && !support.isDisposed()) { if(support.healthBar) support.healthBar.dispose(); support.dispose(); } });
+            this.supportShips = [];
+            
+            // Number of enemies per wave increases with the wave number
+            const enemyCount = 5 + (this.currentWave - 1) * 2 + Math.floor(Math.random() * 3);
+            this.updateStatus(`Generating wave ${this.currentWave} with ${enemyCount} enemies...`);
+            
+            // Restore player health to 100%
+            this.playerHealth = 100;
+            this.updateHealthBar();
+            
+            // Spawn enemies
+            for (let i = 0; i < enemyCount; i++) {
+                await new Promise(resolve => setTimeout(resolve, i * 500)); 
+                const enemy = await this.createEnemyShip();
+                this.enemyShips.push(enemy);
+                this.updateUI();
+                console.log(`Enemy ${i + 1} of ${enemyCount} created`);
+            }
+
+            // Occasionally spawn support ships (increased maxSupportShips)
+            const maxSupportShips = 3; // Increased from 2 to 3
+            const spawnChance = 0.6; // 60% chance to spawn a support ship per "slot"
+            for (let i = 0; i < maxSupportShips; i++) {
+                if (Math.random() < spawnChance) {
+                    await new Promise(resolve => setTimeout(resolve, (enemyCount + i) * 500)); // Delay after enemies
+                    const support = await this.createSupportShip();
+                    this.supportShips.push(support);
+                    console.log(`Support ship ${i + 1} created`);
+                }
+            }
+
+            this.updateStatus(`Wave ${this.currentWave} in progress!`);
+        }
+
+        // Sets up control events (mouse and keyboard)
+        setupControls() {
+            // Mouse events to move the ship
+            this.canvas.addEventListener('mousemove', (e) => {
+                const rect = this.canvas.getBoundingClientRect();
+                // Normalize mouse position to a range of -1 to 1
+                this.mousePosition.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+                this.mousePosition.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+            });
+            
+            // Left click to fire laser
+            this.canvas.addEventListener('click', () => {
+                this.fireLaser();
+            });
+            
+            // Right click to launch torpedo (prevent context menu)
+            this.canvas.addEventListener('contextmenu', (e) => {
+                e.preventDefault();
+                this.fireTorpedo();
+            });
+            
+            // Keyboard events for maneuvers
+            document.addEventListener('keydown', (e) => {
+                this.keys[e.code] = true;
+            });
+            
+            document.addEventListener('keyup', (e) => {
+                this.keys[e.code] = false;
+            });
+            
+            console.log("Controls set up");
+        }
+        
+        // Fires a laser from the player's ship
+        fireLaser() {
+            if (!this.playerShip) return;
+            const now = performance.now();
+            if (now - this.lastLaserTime < this.laserCooldown) return; // Cooldown
+            this.lastLaserTime = now;
+
+            const laser = BABYLON.MeshBuilder.CreateSphere("laser", {diameter: 0.2}, this.scene);
+            const material = new BABYLON.StandardMaterial("laserMat", this.scene);
+            material.emissiveColor = new BABYLON.Color3(0, 1, 0); // Green laser
+            laser.material = material;
+            
+            // Initial laser position (from the tip of the ship)
+            laser.position = this.playerShip.position.add(this.playerShip.forward.scale(2)); // In front of the ship
+            
+            // Laser direction (where the ship is pointing)
+            laser.direction = this.playerShip.forward.clone();
+            laser.speed = this.LASER_SPEED;
+            laser.life = 100; // Laser duration before disappearing
+            laser.damage = 15; // Laser damage
+            laser.isPlayer = true; // Flag for player projectile
+            
+            this.projectiles.push(laser);
+        }
+        
+        // Launches a torpedo from the player's ship
+        fireTorpedo() {
+            if (!this.playerShip) return;
+            const now = performance.now();
+            if (now - this.lastTorpedoTime < this.torpedoCooldown) return; // Cooldown
+            this.lastTorpedoTime = now;
+
+            const torpedo = BABYLON.MeshBuilder.CreateBox("torpedo", {width: 0.3, height: 0.2, depth: 1}, this.scene);
+            const material = new BABYLON.StandardMaterial("torpedoMat", this.scene);
+            material.emissiveColor = new BABYLON.Color3(1, 1, 0); // Yellow torpedo
+            torpedo.material = material;
+            
+            // Initial torpedo position
+            torpedo.position = this.playerShip.position.add(this.playerShip.forward.scale(1.5));
+            
+            // Torpedo direction
+            torpedo.direction = this.playerShip.forward.clone();
+            torpedo.speed = this.TORPEDO_SPEED;
+            torpedo.life = 200; // Torpedo duration
+            torpedo.damage = 50; // Torpedo damage
+            torpedo.isPlayer = true; // Flag for player projectile
+            
+            // Assign a target for the torpedo to home in on
+            const closestEnemy = this.findClosestEnemy(this.playerShip.position); // Ensure it targets enemies
+            if (closestEnemy) {
+                torpedo.target = closestEnemy;
+                console.log("Torpedo launched, homing on target.");
+            } else {
+                torpedo.target = null; // No target, will fly straight
+            }
+            
+            this.projectiles.push(torpedo);
+        }
+
+        // Finds the closest enemy ship to the given position (player or support ship)
+        findClosestEnemy(position) { // Removed default player position to make it generic
+            if (this.enemyShips.length === 0) return null;
+            
+            let closestEnemy = null;
+            let minDistance = Infinity;
+            
+            this.enemyShips.forEach(enemy => {
+                const distance = BABYLON.Vector3.Distance(position, enemy.position);
+                if (distance < minDistance) {
+                    minDistance = distance;
+                    closestEnemy = enemy;
+                }
+            });
+            
+            return closestEnemy;
+        }
+
+        // Finds the closest target for an enemy (player or support ship)
+        findClosestTargetForEnemy(enemyShip) {
+            let closestTarget = null;
+            let minDistance = Infinity;
+
+            // Check player ship
+            const distToPlayer = BABYLON.Vector3.Distance(enemyShip.position, this.playerShip.position);
+            if (!this.playerShip.isDisposed() && distToPlayer < minDistance) {
+                minDistance = distToPlayer;
+                closestTarget = this.playerShip;
+            }
+
+            // Check support ships
+            this.supportShips.forEach(support => {
+                if (!support || support.isDisposed()) return;
+                const distToSupport = BABYLON.Vector3.Distance(enemyShip.position, support.position);
+                if (distToSupport < minDistance) {
+                    minDistance = distToSupport;
+                    closestTarget = support;
+                }
+            });
+
+            return closestTarget;
+        }
+        
+        // Updates the player ship's position and rotation
+        updatePlayer() {
+            if (!this.playerShip) return;
+            
+            // Mouse movement and rotation (adjusts pitch and yaw)
+            const dt = this.engine.getDeltaTime() / 1000; // Delta time in seconds
+            
+            // Vertical pitch
+            const targetPitch = -this.mousePosition.y * 0.5; // Adjust this value for sensitivity
+            this.playerShip.rotation.x += (targetPitch - this.playerShip.rotation.x) * this.PLAYER_ROTATION_SPEED;
+
+            // Horizontal yaw
+            const targetYaw = this.mousePosition.x * 0.5; // Adjust this value for sensitivity
+            this.playerShip.rotation.y += (targetYaw - this.playerShip.rotation.y) * this.PLAYER_ROTATION_SPEED;
+            
+            // Keyboard maneuvers
+            let forwardSpeed = 0;
+            let strafeSpeed = 0;
+            let verticalSpeed = 0;
+            let rollSpeed = 0; // For "barrel roll"
+
+            if (this.keys['KeyW']) forwardSpeed += this.PLAYER_SPEED; // Forward
+            if (this.keys['KeyS']) forwardSpeed -= this.PLAYER_SPEED * 0.5; // Backward
+            if (this.keys['KeyA']) strafeSpeed -= this.PLAYER_SPEED * 0.7; // Strafe left
+            if (this.keys['KeyD']) strafeSpeed += this.PLAYER_SPEED * 0.7; // Strafe right
+            if (this.keys['ArrowUp']) verticalSpeed += this.PLAYER_SPEED * 0.7; // Ascend
+            if (this.keys['ArrowDown']) verticalSpeed -= this.PLAYER_SPEED * 0.7; // Descend
+            if (this.keys['KeyQ']) rollSpeed -= this.PLAYER_ROTATION_SPEED * 2; // Roll left
+            if (this.keys['KeyE']) rollSpeed += this.PLAYER_ROTATION_SPEED * 2; // Roll right
+
+            // Apply movements relative to the ship's orientation
+            this.playerShip.locallyTranslate(new BABYLON.Vector3(strafeSpeed * dt, verticalSpeed * dt, forwardSpeed * dt));
+            
+            // Apply "barrel roll" rotation
+            this.playerShip.rotation.z += rollSpeed;
+
+            // Ensure the camera follows the ship
+            this.camera.lockedTarget = this.playerShip;
+        }
+        
+        // Updates the enemies' position, rotation, and behavior
+        updateEnemies() {
+            this.enemyShips.forEach((enemy, index) => {
+                if (!enemy || enemy.isDisposed()) return;
+                
+                const now = performance.now();
+                
+                // Find the closest target (player or support ship)
+                const target = this.findClosestTargetForEnemy(enemy);
+
+                if (!target || target.isDisposed()) {
+                    // If no target, perhaps patrol or retreat
+                    enemy.state = 'PATROLLING'; 
+                    enemy.position.addInPlace(enemy.patrolDirection.scale(enemy.currentSpeed * 0.5));
+                    enemy.rotation.y += (Math.random() - 0.5) * 0.1;
+                    this.updateHealthBarUI(enemy);
+                    return; // Skip further logic if no target
+                }
+
+                const distanceToTarget = BABYLON.Vector3.Distance(enemy.position, target.position);
+                
+                // --- Logic for random rolling behavior ---
+                if (now - enemy.lastRollTime > enemy.rollInterval) {
+                    enemy.rollAngleTarget = (Math.random() > 0.5 ? 1 : -1) * BABYLON.Tools.ToRadians(35);
+                    enemy.lastRollTime = now;
+                    enemy.rollInterval = enemy.rollDuration + 5000 + Math.random() * 5000;
+                }
+                
+                const rollProgress = Math.min((now - enemy.lastRollTime) / enemy.rollDuration, 1);
+                enemy.rotation.z = BABYLON.Scalar.Lerp(enemy.rotation.z, enemy.rollAngleTarget, 0.1);
+
+                if (now - enemy.lastRollTime > enemy.rollDuration && enemy.rollAngleTarget !== 0) {
+                    enemy.rollAngleTarget = 0;
+                }
+                // --- End of rolling logic ---
+
+                // State change logic
+                enemy.stateTimer += this.engine.getDeltaTime();
+                if (enemy.stateTimer > enemy.stateChangeInterval) {
+                    enemy.stateTimer = 0;
+                    enemy.stateChangeInterval = 2000 + Math.random() * 5000;
+                    
+                    const behaviorChance = Math.random();
+                    if (distanceToTarget > this.ENEMY_LONG_RANGE && behaviorChance < 0.2) {
+                        enemy.state = 'LONG_RANGE_ATTACK';
+                    } else if (distanceToTarget > this.ENEMY_FIRE_RANGE && behaviorChance < 0.5) {
+                        enemy.state = 'PATROLLING';
+                    } else if (distanceToTarget > this.ENEMY_STOP_DISTANCE) {
+                        enemy.state = 'APPROACHING';
+                    } else {
+                         enemy.state = 'RETREATING';
+                    }
+                }
+
+                switch (enemy.state) {
+                    case 'APPROACHING':
+                        if (distanceToTarget > this.ENEMY_STOP_DISTANCE) {
+                            const direction = target.position.subtract(enemy.position);
+                            direction.normalize();
+                            enemy.position.addInPlace(direction.scale(enemy.currentSpeed));
+                            enemy.lookAt(target.position);
+                            
+                            if (enemy.canFire && (now - enemy.lastShot > enemy.fireRate) && distanceToTarget < this.ENEMY_FIRE_RANGE) {
+                                this.enemyFire(enemy, target.position); // Pass target position
+                                enemy.lastShot = now;
+                            }
+                        } else {
+                            enemy.state = 'RETREATING';
+                        }
+                        break;
+
+                    case 'RETREATING':
+                        const retreatDirection = enemy.position.subtract(target.position);
+                        retreatDirection.normalize();
+                        enemy.position.addInPlace(retreatDirection.scale(enemy.currentSpeed * this.ENEMY_RETREAT_SPEED_MULTIPLIER));
+                        enemy.lookAt(enemy.position.add(retreatDirection));
+
+                        if (distanceToTarget > enemy.retreatTargetDistance) {
+                            enemy.state = 'APPROACHING';
+                        }
+                        break;
+
+                    case 'PATROLLING':
+                        enemy.position.addInPlace(enemy.patrolDirection.scale(enemy.currentSpeed * 0.5));
+                        enemy.rotation.y += (Math.random() - 0.5) * 0.1;
+                        break;
+
+                    case 'LONG_RANGE_ATTACK':
+                        enemy.lookAt(target.position);
+
+                        enemy.position.addInPlace(target.position.subtract(enemy.position).normalize().scale(enemy.currentSpeed * 0.2));
+                        
+                        if (enemy.canFire && (now - enemy.lastShot > enemy.fireRate) && distanceToTarget < this.ENEMY_LONG_RANGE) {
+                            this.enemyFire(enemy, target.position); // Pass target position
+                            enemy.lastShot = now;
+                            enemy.state = 'PATROLLING'; 
+                        }
+                        break;
+                }
+
+                // Check for direct collision with the target
+                if (distanceToTarget < this.COLLISION_DISTANCE) {
+                    if (target === this.playerShip) {
+                        this.damagePlayer(this.COLLISION_DAMAGE);
+                    } else { // It's a support ship
+                        const supportIndex = this.supportShips.indexOf(target);
+                        if (supportIndex !== -1) {
+                            this.damageSupportShip(target, supportIndex, this.COLLISION_DAMAGE);
+                        }
+                    }
+                    this.removeEnemy(index); // Enemy is destroyed after collision
+                }
+                this.updateHealthBarUI(enemy); 
+            });
+        }
+
+        // Updates support ships' position, rotation, and behavior
+        updateSupportShips() {
+            this.supportShips.forEach((support, index) => {
+                if (!support || support.isDisposed()) return;
+
+                const now = performance.now();
+
+                // Find closest enemy to target
+                const closestEnemy = this.findClosestEnemy(support.position); // Use generic findClosestEnemy
+                if (closestEnemy && !closestEnemy.isDisposed()) {
+                    const distanceToEnemy = BABYLON.Vector3.Distance(support.position, closestEnemy.position);
+                    const directionToEnemy = closestEnemy.position.subtract(support.position).normalize();
+
+                    // Move towards enemy
+                    support.position.addInPlace(directionToEnemy.scale(support.currentSpeed));
+                    // Look at the enemy
+                    support.lookAt(closestEnemy.position);
+
+                    // Fire at enemy if in range and cooldown allows
+                    if (now - support.lastShot > support.fireRate && distanceToEnemy < this.SUPPORT_SHIP_FIRE_RANGE) {
+                        this.supportFire(support, closestEnemy.position);
+                        support.lastShot = now;
+                    }
+                } else {
+                    // If no enemies, slowly move towards player ship or patrol
+                    const directionToPlayer = this.playerShip.position.subtract(support.position);
+                    if (directionToPlayer.length() > 10) { // Keep some distance from player
+                        directionToPlayer.normalize();
+                        support.position.addInPlace(directionToPlayer.scale(support.currentSpeed * 0.5));
+                    }
+                    // Optionally add some random patrol if very far from player
+                }
+                this.updateHealthBarUI(support); 
+            });
+        }
+
+        // An enemy fires a laser
+        enemyFire(enemy, targetPosition) { // Now accepts targetPosition
+            const laser = BABYLON.MeshBuilder.CreateSphere("enemyLaser", {diameter: 0.15}, this.scene);
+            const material = new BABYLON.StandardMaterial("enemyLaserMat", this.scene);
+            material.emissiveColor = new BABYLON.Color3(1, 0, 0); // Red laser
+            laser.material = material;
+            
+            laser.position = enemy.position.clone();
+            // Enemy laser direction towards the target
+            laser.direction = targetPosition.subtract(enemy.position).normalize();
+            laser.speed = this.ENEMY_LASER_SPEED; 
+            laser.life = 80;
+            laser.isEnemy = true; 
+            laser.damage = this.ENEMY_LASER_DAMAGE; 
+            
+            this.projectiles.push(laser);
+        }
+
+        // A support ship fires a laser
+        supportFire(supportShip, targetPosition) {
+            const laser = BABYLON.MeshBuilder.CreateSphere("supportLaser", {diameter: 0.2}, this.scene);
+            const material = new BABYLON.StandardMaterial("supportLaserMat", this.scene);
+            material.emissiveColor = new BABYLON.Color3(0.5, 1, 0); // Bright green-yellow for support lasers
+            laser.material = material;
+            
+            laser.position = supportShip.position.clone();
+            laser.direction = targetPosition.subtract(supportShip.position).normalize();
+            laser.speed = this.SUPPORT_SHIP_LASER_SPEED;
+            laser.life = 100;
+            laser.isSupport = true; 
+            laser.damage = this.SUPPORT_SHIP_LASER_DAMAGE;
+            
+            this.projectiles.push(laser);
+        }
+        
+        // Updates projectile positions and checks for collisions
+        updateProjectiles() {
+            // Iterate in reverse to handle element removal
+            for (let i = this.projectiles.length - 1; i >= 0; i--) {
+                const proj = this.projectiles[i];
+                if (!proj || proj.isDisposed()) {
+                    this.projectiles.splice(i, 1);
+                    continue;
+                }
+
+                // Homing torpedo logic (only for player torpedoes)
+                if (proj.name === 'torpedo' && proj.target && !proj.target.isDisposed()) {
+                    const directionToTarget = proj.target.position.subtract(proj.position).normalize();
+                    proj.direction = BABYLON.Vector3.Lerp(proj.direction, directionToTarget, 0.05); // Smoothly change direction
+                    proj.lookAt(proj.target.position); // Rotate torpedo to face the target
+                }
+                
+                // Move the projectile
+                proj.position.addInPlace(proj.direction.scale(proj.speed));
+                proj.life--;
+                
+                // Remove if its lifespan has ended
+                if (proj.life <= 0) {
+                    proj.dispose();
+                    this.projectiles.splice(i, 1);
+                    continue;
+                }
+                
+                // Collision check logic
+                if (proj.isEnemy) {
+                    // Enemy projectile vs player
+                    const distToPlayer = BABYLON.Vector3.Distance(proj.position, this.playerShip.position);
+                    if (distToPlayer < 2) { 
+                        this.damagePlayer(proj.damage);
+                        proj.dispose();
+                        this.projectiles.splice(i, 1);
+                        continue; 
+                    }
+
+                    // Enemy projectile vs support ships
+                    for (let j = this.supportShips.length - 1; j >= 0; j--) {
+                        const support = this.supportShips[j];
+                        if (!support || support.isDisposed()) continue;
+
+                        const distToSupport = BABYLON.Vector3.Distance(proj.position, support.position);
+                        if (distToSupport < 2) {
+                            this.damageSupportShip(support, j, proj.damage);
+                            proj.dispose();
+                            this.projectiles.splice(i, 1);
+                            break; 
+                        }
+                    }
+                } else if (proj.isPlayer || proj.isSupport) { // Player or Support projectile
+                    // Projectile vs enemies
+                    for (let j = this.enemyShips.length - 1; j >= 0; j--) {
+                        const enemy = this.enemyShips[j];
+                        if (!enemy || enemy.isDisposed()) continue;
+
+                        const dist = BABYLON.Vector3.Distance(proj.position, enemy.position);
+                        if (dist < 2) { 
+                            this.damageEnemy(enemy, j, proj.damage);
+                            proj.dispose();
+                            this.projectiles.splice(i, 1); 
+                            break; 
+                        }
+                    }
+                }
+            }
+        }
+        
+        // Inflicts damage on the player
+        damagePlayer(damage) {
+            this.playerHealth -= damage;
+            if (this.playerHealth < 0) this.playerHealth = 0;
+            this.updateHealthBar(); // Update the health bar visually
+            
+            if (this.playerHealth <= 0) {
+                this.gameOver("Game Over!");
+            }
+        }
+        
+        // Inflicts damage on an enemy
+        damageEnemy(enemy, index, damage) {
+            enemy.health -= damage;
+            this.updateHealthBarUI(enemy); // Update enemy health bar visually
+            
+            if (enemy.health <= 0) {
+                this.score += 100; // Add points for eliminating an enemy
+                this.removeEnemy(index); // Remove the enemy
+            }
+        }
+
+        // Inflicts damage on a support ship
+        damageSupportShip(support, index, damage) {
+            support.health -= damage;
+            this.updateHealthBarUI(support); // Update support ship health bar visually
+
+            if (support.health <= 0) {
+                this.removeSupportShip(index); // Remove the support ship
+            }
+        }
+        
+        // Removes an enemy from the scene
+        removeEnemy(index) {
+            if (this.enemyShips[index]) {
+                if (this.enemyShips[index].healthBar) {
+                    this.enemyShips[index].healthBar.dispose(); // Remove the health bar
+                }
+                this.enemyShips[index].dispose(); // Remove the enemy mesh
+                this.enemyShips.splice(index, 1); // Remove it from the array
+                this.updateUI(); // Update the UI
+                
+                // If no enemies are left, move to the next wave
+                if (this.enemyShips.length === 0 && this.waveInProgress) {
+                    this.nextWave();
+                }
+            }
+        }
+
+        // Removes a support ship from the scene
+        removeSupportShip(index) {
+            if (this.supportShips[index]) {
+                if (this.supportShips[index].healthBar) {
+                    this.supportShips[index].healthBar.dispose();
+                }
+                this.supportShips[index].dispose();
+                this.supportShips.splice(index, 1);
+                console.log("Support ship destroyed!");
+            }
+        }
+        
+        // Moves to the next wave
+        nextWave() {
+            this.waveInProgress = false; // Allow a new wave to start
+            this.currentWave++;
+            this.updateStatus(`Wave ${this.currentWave} completed! Preparing next one...`);
+            setTimeout(() => {
+                this.startWave(); // Start the next wave
+            }, 3000); // Short pause between waves
+        }
+        
+        // Updates the player's health bar (main UI)
+        updateHealthBar() {
+            const bar = document.getElementById('playerHealth');
+            const percent = (this.playerHealth / 100) * 100; // Calculate health percentage
+            bar.style.width = percent + '%';
+            
+            // Change the health bar color based on the percentage
+            if (percent > 50) {
+                bar.style.background = '#00ff00'; // Green
+            } else if (percent > 30) {
+                bar.style.background = '#ffff00'; // Yellow
+            } else {
+                bar.style.background = '#ff0000'; // Red
+            }
+        }
+
+        // Generic function to update a ship's health bar (enemy or support)
+        updateHealthBarUI(ship) {
+            if (!ship.healthBar) return;
+            const percent = ship.health / ship.maxHealth;
+            ship.healthBar.scaling.x = percent;
+            
+            const material = ship.healthBar.material;
+            if (percent > 0.5) {
+                material.emissiveColor = new BABYLON.Color3(0, 1, 0); // Green
+            } else if (percent > 0.3) {
+                material.emissiveColor = new BABYLON.Color3(1, 1, 0); // Yellow
+            } else {
+                material.emissiveColor = new BABYLON.Color3(1, 0, 0); // Red
+            }
+        }
+        
+        // Updates the UI elements (score, wave, enemies)
+        updateUI() {
+            document.getElementById('score').textContent = this.score;
+            document.getElementById('wave').textContent = this.currentWave;
+            document.getElementById('enemies').textContent = this.enemyShips.length;
+        }
+        
+        // Shows the game over or victory message and allows restarting
+        gameOver(message) {
+            this.updateStatus("Game over.");
+            this.engine.stopRenderLoop(); // Stop the game loop
+
+            const gameMessageEl = document.getElementById('gameMessage');
+            const messageTextEl = document.getElementById('messageText');
+            const restartButton = document.getElementById('restartButton');
+
+            messageTextEl.textContent = message;
+            gameMessageEl.style.display = 'block'; // Show the message
+
+            // Hide controls and crosshair when game is over
+            document.getElementById('controls').style.display = 'none';
+            document.getElementById('crosshair').style.display = 'none';
+            
+            restartButton.onclick = () => {
+                location.reload(); // Reload the page to restart the game
+            };
+        }
+        
+        // Starts the main game loop
+        startGameLoop() {
+            const update = () => {
+                try {
+                    this.updatePlayer(); // Update the player
+                    this.updateEnemies(); // Update the enemies
+                    this.updateSupportShips(); // Update support ships
+                    this.updateProjectiles(); // Update the projectiles
+                    
+                    // Request the next animation frame
+                    requestAnimationFrame(update);
+                } catch (error) {
+                    console.error("Error in game loop:", error);
+                    // Consider calling gameOver or showing a more specific error message
+                    this.gameOver("Critical game error!"); 
+                }
+            };
+            
+            update(); // Start the first frame of the loop
+            console.log("Game loop started");
+        }
+    }
+    
+    // Modified Star Wars intro class
+    class StarWars {
+      constructor(args) {
+        this.el = document.querySelector(args.el);
+        this.audio = this.el.querySelector('audio');
+        this.initialStart = this.el.querySelector('.start');
+        this.animation = this.el.querySelector('.animation');
+        this.onComplete = args.onComplete || (() => {});
+
+        this.reset();
+        
+        this.initialStart.addEventListener('click', () => {
+          this.initialStart.style.display = 'none';
+          this.audio.play();
+          this.el.appendChild(this.animation);
+          // Call the callback when audio ends
+          this.audio.addEventListener('ended', () => {
+            this.onComplete();
+          });
+        });
+      }
+
+      reset() {
+        this.initialStart.style.display = 'block';
+        this.cloned = this.animation.cloneNode(true);
+        this.animation.remove();
+        this.animation = this.cloned;
+      }
+    }
+
+    // Function to load STL models
+    async function loadSTLModels() {
+      const models = [
+        "https://raw.githubusercontent.com/ravendano014/starship/main/Starship.stl",
+        "https://raw.githubusercontent.com/ravendano014/starship/main/Starship2.stl",
+        "https://raw.githubusercontent.com/ravendano014/starship/main/Starship3.stl",
+        "https://raw.githubusercontent.com/ravendano014/starship/main/Starship4.stl"
+      ];
+      
+      try {
+        // Pre-load the models
+        const loader = new BABYLON.STLFileLoader();
+        for (const url of models) {
+          await new Promise((resolve) => {
+            loader.load(url, (data) => resolve(data), null, (error) => {
+              console.warn("Error loading model:", url, error);
+              resolve(); // Continue even if there's an error
+            });
+          });
+        }
+        return true;
+      } catch (error) {
+        console.error("Error in model loading:", error);
+        return false;
+      }
+    }
+
+    // Wait for both processes to complete
+    Promise.all([
+      new Promise((resolve) => {
+        const intro = new StarWars({
+          el: '.starwars',
+          onComplete: resolve
+        });
+      }),
+      loadSTLModels()
+    ]).then(() => {
+      // Show the game start button when both are done
+      document.getElementById('gameStartButton').style.display = 'block';
+      
+      // Set up the button to start the game
+      document.querySelector('#gameStartButton button').addEventListener('click', () => {
+        document.getElementById('gameStartButton').style.display = 'none';
+        document.querySelector('.starwars').style.display = 'none';
+        document.getElementById('ui').style.display = 'block';
+        document.getElementById('controls').style.display = 'block';
+        document.getElementById('crosshair').style.display = 'block';
+        
+        // Start the game
+        console.log("Starting game...");
+        try {
+          window.gameInstance = new SpaceFlightSimulator();
+        } catch (error) {
+          console.error("Error creating game:", error);
+          document.getElementById('status').textContent = "Error: " + error.message;
+        }
+      });
+    });
+
+    // Handle window resizing
+    window.addEventListener('resize', () => {
+      if (window.gameInstance && window.gameInstance.engine) {
+        window.gameInstance.engine.resize();
+      }
+    });
+</script>
 </body>
 </html>
-
