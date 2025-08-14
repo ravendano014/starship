@@ -323,9 +323,33 @@
     font-size: 18px;
     text-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
 }
+
+/* Skip Intro Button Styles */
+#skipIntroButton {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    z-index: 400;
+    background: rgba(0, 0, 0, 0.7);
+    border: 1px solid #00ff00;
+    color: #00ff00;
+    padding: 8px 16px;
+    font-size: 14px;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+}
+
+#skipIntroButton:hover {
+    background: #00ff00;
+    color: #000;
+}
     </style>
 </head>
 <body>
+
+<!-- Skip Intro Button -->
+<button id="skipIntroButton">SKIP INTRO</button>
 
 <article class="starwars">
   <audio preload="auto" id="starwarsAudio">
@@ -403,19 +427,12 @@
               c-16.051-15.971-14.37-23.621-14.48-29.271c-0.229-6.77,5.102-28.069,32.812-28.069L655.258,220.758 M440.188,273.878
               c15.37,0,18.49-0.239,21.761-1.66c11.04-4.8,11.63-18.979,1.04-25.271c-2.319-1.381-5.3-1.609-21.96-1.7l-19.279-0.101
               c0.159,0.15-0.061,27.57-0.061,27.57S426.518,273.878,440.188,273.878 M663.277,212.758h-8.021h-73.8
-              c-16.032,0-25.515,6.328-30.646,11.637c-8.347,8.633-10.313,19.504-10.162,24.629c0.008,0.427,0.003,0.865-0.002,1.322
-              c-0.073,8.329,1.154,17.758,16.659,33.246c3.065,3.452,8.193,9.239,10.131,12.115c-4.238,0.521-14.98,0.521-26.262,0.521h-4.792
-              l-5.816-0.002c-19.904,0-36.688-0.057-40.128-0.736c-0.481-0.314-1.156-0.854-1.898-1.498c6.877-4.235,13.83-10.799,17.104-16.412
-              c1.987-3.413,4.178-9.243,5.098-13.568c2.04-9.625-1.325-21.236-9.001-31.068c-8.956-11.471-21.985-18.334-35.746-18.83
-              l-0.145-0.006h-0.145h-34.79h-45.271h-8.016l0.016,8.017l0.221,114.979l0.016,7.949l7.949,0.035l35.899,0.159l7.988,0.035
-              l0.047-7.988l0.155-26.706c0.733,0.696,1.491,1.419,2.269,2.165c24.227,23.24,32.359,29.679,39.562,31.308
-              c1.979,0.441,5.253,1.172,63.523,1.188h2.779c31.546,0,47.38,0,56.799-0.91c10.789-1.043,14.259-3.49,19.461-7.725l0.173-0.141
-              c10.685-8.687,16.323-21.83,14.715-34.3c-1.048-8.11-3.194-11.479-11.922-22.368l-2.594-3.24
-              c-3.04-3.799-6.713-8.387-9.175-11.475c-1.986-2.484-3.546-4.689-4.487-6.133c1.236-0.003,2.841-0.005,4.918-0.005
-              c16.395,0,48.887,0.108,49.213,0.11l8.008,0.026l0.02-8.008l0.075-30.306L663.277,212.758L663.277,212.758z M429.739,265.586
-              c0.013-2.021,0.025-4.287,0.038-6.557c0.01-2,0.019-4.004,0.022-5.84l11.187,0.058c6.429,0.035,16.103,0.088,17.989,0.623
-              c2.407,1.461,3.75,3.72,3.604,6.06c-0.08,1.264-0.682,3.588-3.821,4.951c-1.75,0.76-4.54,0.997-18.57,0.997
-              C435.738,265.878,432.305,265.749,429.739,265.586L429.739,265.586z"/>
+              c-16.032,0-25.515,6.328-27.342,12.722c-5.814,6.652-9.63,15.429-10.206,23.477c-0.973,13.511,2.137,18.393,17.056,35.202
+              c4.33,4.877,8.447,9.516,9.821,11.486c-0.022,0.079-0.042,0.13-0.054,0.159c-0.015,0.012-0.038,0.03-0.07,0.052l-0.822,0.572H37.908
+              h-8v8v32.13v8h8h62.27h4.937h4.455c28.522,0,42.6-0.027,50.894-0.635c9.49-0.695,12.518-2.323,17.054-5.14l0.566-0.351
+              c14.262-8.821,21.612-29.827,15.422-44.074c-1.91-4.358-14.003-19.746-15.376-21.486c-3.796-4.807-10.062-12.74-11.054-15.036
+              c0.024-0.193,0.071-0.393,0.121-0.532c0.165-0.042,0.481-0.098,1.001-0.098l58.86-0.167v79.517v8h8h34.15h8v-8v-79.47h49.28h8v-8
+              v-28.6V73.916L334.488,73.916z"/>
           </g>
           <g>
             <path fill="#FFE81F" d="M312.908,220.287l40.29,115.92l-32.83,0.15l-5.45-17.41l-58.7-0.471l-5.18,17.431l-32.5-0.341
@@ -830,6 +847,7 @@
                 (Math.random() - 0.5) * 20, // Random height
                 Math.sin(angle) * distance
             );
+            //enemyShip.rotation = new BABYLON.Vector3(0, Math.PI, 0);
             
             // Enemy ship properties are now scaled by wave number for progressive difficulty
             enemyShip.health = 30 + (this.currentWave - 1) * 5; // Start with 30 health, increase by 5 per wave
@@ -927,7 +945,8 @@
                 (Math.random() - 0.5) * 5,
                 Math.sin(angle) * distance
             ));
-            
+            //supportShip.rotation = new BABYLON.Vector3(0, Math.PI, 0);
+
             supportShip.health = this.SUPPORT_SHIP_HEALTH;
             supportShip.maxHealth = this.SUPPORT_SHIP_HEALTH;
             supportShip.lastShot = 0;
@@ -1635,6 +1654,30 @@
       }
     }
 
+    // Function to start the game immediately (skip intro)
+    function startGameImmediately() {
+        document.querySelector('.starwars').style.display = 'none';
+        document.getElementById('skipIntroButton').style.display = 'none';
+        document.getElementById('gameStartButton').style.display = 'none';
+        document.getElementById('ui').style.display = 'block';
+        document.getElementById('controls').style.display = 'block';
+        document.getElementById('crosshair').style.display = 'block';
+        
+        // Start the game
+        console.log("Starting game...");
+        try {
+          window.gameInstance = new SpaceFlightSimulator();
+        } catch (error) {
+          console.error("Error creating game:", error);
+          document.getElementById('status').textContent = "Error: " + error.message;
+        }
+    }
+
+    // Set up skip intro button
+    document.getElementById('skipIntroButton').addEventListener('click', () => {
+        startGameImmediately();
+    });
+
     // Wait for both processes to complete
     Promise.all([
       new Promise((resolve) => {
@@ -1652,6 +1695,7 @@
       document.querySelector('#gameStartButton button').addEventListener('click', () => {
         document.getElementById('gameStartButton').style.display = 'none';
         document.querySelector('.starwars').style.display = 'none';
+        document.getElementById('skipIntroButton').style.display = 'none';
         document.getElementById('ui').style.display = 'block';
         document.getElementById('controls').style.display = 'block';
         document.getElementById('crosshair').style.display = 'block';
@@ -1676,3 +1720,4 @@
 </script>
 </body>
 </html>
+
