@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Starship Viewer with Babylon.js</title>
+    <style>
+        html, body {
+            overflow: hidden;
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+        #renderCanvas {
+            width: 100%;
+            height: 100%;
+            touch-action: none;
+        }
+        #ui {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            z-index: 100;
+            font-family: sans-serif;
+            color: white;
+            background-color: rgba(0, 0, 0, 0.5);
+            padding: 10px;
+            border-radius: 5px;
+            display: grid;
+            gap: 10px;
+        }
+        h2 {
+            margin: 0 0 5px 0;
+        }
+        select, input[type="range"] {
+            width: 150px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        .control-group {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            padding-bottom: 10px;
+        }
+        .control-group:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+    </style>
+    <script src="https://cdn.babylonjs.com/babylon.js"></script>
+    <script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
+</head>
+<body>
+    <canvas id="renderCanvas"></canvas>
+    <div id="ui">
+        <h2>Starship Controls</h2>
+
+        <div class="control-group">
+            <label for="modelSelector">Select Starship:</label>
+            <select id="modelSelector">
+                <option value="Starship.stl">Starship 1</option>
+                <option value="Starship2.stl">Starship 2</option>
+                <option value="Starship3.stl">Starship 3</option>
+                <option value="Starship4.stl">Starship 4</option>
+                <option value="Starship5.stl">Starship 5</option>
+            </select>
+        </div>
+
+        <div class="control-group">
+            <label for="scaleSlider">Scale:</label>
+            <input type="range" id="scaleSlider" min="0.5" max="5" value="1.5" step="0.1">
+        </div>
+
+        <div class="control-group">
+            <label for="rotationXSlider">Rotate X:</label>
+            <input type="range" id="rotationXSlider" min="0" max="360" value="0" step="1">
+        </div>
+
+        <div class="control-group">
+            <label for="rotationYSlider">Rotate Y:</label>
+            <input type="range" id="rotationYSlider" min="0" max="360" value="0" step="1">
+        </div>
+
+        <div class="control-group">
+            <label for="rotationZSlider">Rotate Z:</label>
+            <input type="range" id="rotationZSlider" min="0" max="360" value="0" step="1">
+        </div>
+
+        <div class="control-group">
+            <label>Render Mode:</label>
+            <button id="wireframeBtn">Wireframe</button>
+            <button id="solidBtn">Solid</button>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById("renderCanvas");
+        const engine = new BABYLON.Engine(canvas, true);
+
+        const createScene = function () {
+            const scene = new BABYLON.Scene(engine);
+            scene.clearColor = new BABYLON.Color3(0.1, 0.1, 0.1);
+
+            const camera = new BABYLON.ArcRotateCamera("camera", -Math.PI / 2, Math.PI / 2.5, 15, new BABYLON.Vector3(0, 0, 0), scene);
+            camera.setTarget(BABYLON.Vector3.Zero());
+            camera.attachControl(canvas, true);
+
+            const light = new BABYLON.HemisphericLight("light", new BABYLON.Vector3(0, 1, 0), scene);
+            light.intensity = 0.7;
+
+            const directionalLight = new BABYLON.DirectionalLight("directionalLight", new BABYLON.Vector3(0, -1, 0), scene);
+            directionalLight.position = new BABYLON.Vector3(0, 5, 0);
+            directionalLight.intensity = 0.5;
+
+            return scene;
+        };
+
+        const scene = createScene();
+        let currentModel = null;
+        let originalRotation = new BABYLON.Vector3(0, 0, 0);
+
+        const loadModel = (modelName) => {
+            if (currentModel) {
+                currentModel.dispose();
+            }
+
+            const rootUrl = "https://raw.githubusercontent.com/ravendano014/starship/main/";
+            const filename = modelName;
+
+            BABYLON.SceneLoader.ImportMesh("", rootUrl, filename, scene, function (meshes) {
+                currentModel = meshes[0];
+                currentModel.scaling.setAll(parseFloat(scaleSlider.value) * 0.01);
+                currentModel.position.y = -2;
+                currentModel.rotation = originalRotation.clone();
+            }, null, function (scene, message, exception) {
+                console.error("Error loading model:", message, exception);
+                alert("Error loading 3D model. Check the console for more details.");
+            });
+        };
+
+        // --- UI Elements ---
+        const modelSelector = document.getElementById("modelSelector");
+        const scaleSlider = document.getElementById("scaleSlider");
+        const rotationXSlider = document.getElementById("rotationXSlider");
+        const rotationYSlider = document.getElementById("rotationYSlider");
+        const rotationZSlider = document.getElementById("rotationZSlider");
+        const wireframeBtn = document.getElementById("wireframeBtn");
+        const solidBtn = document.getElementById("solidBtn");
+
+        // --- Event Listeners ---
+        modelSelector.addEventListener("change", (event) => {
+            loadModel(event.target.value);
+        });
+
+        scaleSlider.addEventListener("input", (event) => {
+            if (currentModel) {
+                const scaleValue = parseFloat(event.target.value) * 0.01;
+                currentModel.scaling.setAll(scaleValue);
+            }
+        });
+
+        rotationXSlider.addEventListener("input", (event) => {
+            if (currentModel) {
+                const rotationValue = BABYLON.Tools.ToRadians(parseFloat(event.target.value));
+                currentModel.rotation.x = rotationValue;
+                originalRotation.x = rotationValue;
+            }
+        });
+
+        rotationYSlider.addEventListener("input", (event) => {
+            if (currentModel) {
+                const rotationValue = BABYLON.Tools.ToRadians(parseFloat(event.target.value));
+                currentModel.rotation.y = rotationValue;
+                originalRotation.y = rotationValue;
+            }
+        });
+
+        rotationZSlider.addEventListener("input", (event) => {
+            if (currentModel) {
+                const rotationValue = BABYLON.Tools.ToRadians(parseFloat(event.target.value));
+                currentModel.rotation.z = rotationValue;
+                originalRotation.z = rotationValue;
+            }
+        });
+
+        wireframeBtn.addEventListener("click", () => {
+            if (currentModel && currentModel.material) {
+                currentModel.material.wireframe = true;
+            }
+        });
+
+        solidBtn.addEventListener("click", () => {
+            if (currentModel && currentModel.material) {
+                currentModel.material.wireframe = false;
+            }
+        });
+        
+        // Carga el modelo predeterminado al inicio
+        loadModel(modelSelector.value);
+
+        engine.runRenderLoop(function () {
+            scene.render();
+        });
+
+        window.addEventListener("resize", function () {
+            engine.resize();
+        });
+    </script>
+</body>
+</html>
