@@ -119,10 +119,14 @@
         const scene = createScene();
         let currentModel = null;
         let originalRotation = new BABYLON.Vector3(0, 0, 0);
+        let modelMaterial = null;
 
         const loadModel = (modelName) => {
             if (currentModel) {
                 currentModel.dispose();
+            }
+            if (modelMaterial) {
+                modelMaterial.dispose();
             }
 
             const rootUrl = "https://raw.githubusercontent.com/ravendano014/starship/main/";
@@ -133,6 +137,19 @@
                 currentModel.scaling.setAll(parseFloat(scaleSlider.value) * 0.01);
                 currentModel.position.y = -2;
                 currentModel.rotation = originalRotation.clone();
+                
+                // Crear y asignar un nuevo material
+                modelMaterial = new BABYLON.StandardMaterial("modelMaterial", scene);
+                modelMaterial.diffuseColor = new BABYLON.Color3(0.8, 0.8, 0.8);
+                modelMaterial.specularColor = new BABYLON.Color3(0.2, 0.2, 0.2);
+                
+                // Asignar el material a todos los meshes del modelo
+                meshes.forEach(mesh => {
+                    if (mesh.material) {
+                        mesh.material.dispose();
+                    }
+                    mesh.material = modelMaterial;
+                });
             }, null, function (scene, message, exception) {
                 console.error("Error loading model:", message, exception);
                 alert("Error loading 3D model. Check the console for more details.");
@@ -185,14 +202,14 @@
         });
 
         wireframeBtn.addEventListener("click", () => {
-            if (currentModel && currentModel.material) {
-                currentModel.material.wireframe = true;
+            if (modelMaterial) {
+                modelMaterial.wireframe = true;
             }
         });
 
         solidBtn.addEventListener("click", () => {
-            if (currentModel && currentModel.material) {
-                currentModel.material.wireframe = false;
+            if (modelMaterial) {
+                modelMaterial.wireframe = false;
             }
         });
         
@@ -208,6 +225,4 @@
         });
     </script>
 </body>
-
 </html>
-
