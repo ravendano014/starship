@@ -59,8 +59,9 @@ To run locally:
 ## Credits
 
 - Star Wars opening crawl animation adapted from [CodePen](https://codepen.io/kowlor/pen/MYYRdY)
-- Ship models created specifically for this project
+- Ship models created for multiple 3d artist
 - Sound effects from public domain sources
+- Anyone can help to improve this, just for fun
 
 ## License
 
