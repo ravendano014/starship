@@ -583,7 +583,17 @@
             this.SUPPORT_SHIP_LASER_SPEED = 2.5; // Support ship laser speed
             this.SUPPORT_SHIP_LASER_DAMAGE = 10; // Support ship laser damage
             this.SUPPORT_SHIP_COOLDOWN = 500; // Support ship laser cooldown in ms
-            this.SUPPORT_SHIP_HEALTH = 50; // Support ship health
+            this.SUPPORT_SHIP_HEALTH = 75; // Increased support ship health
+            this.SUPPORT_SHIP_PROTECT_RANGE = 25; // Range to protect player
+            this.SUPPORT_SHIP_COVER_CHANCE = 0.4; // Chance to cover player
+
+            // New variables for improved enemy AI
+            this.ENEMY_AGGRESSION_LEVEL = 0.8; // Base aggression level (0-1)
+            this.ENEMY_FLANKING_CHANCE = 0.3; // Chance to flank
+            this.ENEMY_AMBUSH_CHANCE = 0.2; // Chance to ambush
+            this.ENEMY_EVASION_SKILL = 0.7; // Evasion skill (0-1)
+            this.DYNAMIC_DIFFICULTY = true; // Adaptive difficulty
+            this.PLAYER_THREAT_LEVEL = 0; // How threatening the player is perceived
 
             this.updateStatus("Initializing engines...");
             this.init();
@@ -713,7 +723,6 @@
                 this.updateStatus("❌ Could not load background ship");
             }
         }
-
         
         // Loads the player ship's STL model or creates a backup
         async createPlayerShip() {
@@ -855,40 +864,37 @@
                 (Math.random() - 0.5) * 20, // Random height
                 Math.sin(angle) * distance
             );
-            //enemyShip.rotation = new BABYLON.Vector3(0, Math.PI, 0);
             
-            // Enemy ship properties are now scaled by wave number for progressive difficulty
+            // Enemy ship properties
             enemyShip.health = 30 + (this.currentWave - 1) * 5; // Start with 30 health, increase by 5 per wave
             enemyShip.maxHealth = enemyShip.health; 
             enemyShip.lastShot = 0;
-            // Enemy fire rate decreases with each wave
             enemyShip.fireRate = 3000 + Math.random() * 2000 - (this.currentWave - 1) * 100;
             enemyShip.canFire = true;
             enemyShip.state = 'APPROACHING'; // Initial state
-            enemyShip.retreatTargetDistance = this.ENEMY_FIRE_RANGE + 15; // Will move 15 units further than fire range
+            enemyShip.retreatTargetDistance = this.ENEMY_FIRE_RANGE + 15;
             
-            // New properties for evasive maneuvers
-            enemyShip.evasiveTimer = 0;
-            enemyShip.evasiveDuration = 500 + Math.random() * 2000; // Evasive maneuver duration
-            enemyShip.evasiveDirection = BABYLON.Vector3.Zero();
-            // Base speed is now scaled by wave number
-            enemyShip.currentSpeed = this.BASE_ENEMY_SPEED + (this.currentWave - 1) * 0.01;
-            
-            // New logic for state changes and erratic behavior
-            enemyShip.state = 'APPROACHING';
+            // New properties for tactical behavior
+            enemyShip.aggression = this.ENEMY_AGGRESSION_LEVEL + (Math.random() * 0.3 - 0.15);
+            enemyShip.personality = this.getRandomPersonality();
+            enemyShip.lastEvasionTime = 0;
+            enemyShip.evasionCooldown = 2000 + Math.random() * 3000;
+            enemyShip.attackPattern = this.getRandomAttackPattern();
+            enemyShip.formationPosition = null;
             enemyShip.stateTimer = 0;
-            enemyShip.stateChangeInterval = 2000 + Math.random() * 5000; // Time before considering a state change
+            enemyShip.stateChangeInterval = 2000 + Math.random() * 5000;
             enemyShip.patrolDirection = new BABYLON.Vector3(
                 (Math.random() - 0.5) * 2,
                 (Math.random() - 0.5) * 2,
                 0
             ).normalize();
-
-            // New properties for random rolling behavior
             enemyShip.rollAngleTarget = 0;
             enemyShip.lastRollTime = performance.now();
-            enemyShip.rollInterval = 5000 + Math.random() * 5000; // Time before a new roll
-            enemyShip.rollDuration = 1000 + Math.random() * 500; // Duration of the roll movement
+            enemyShip.rollInterval = 5000 + Math.random() * 5000;
+            enemyShip.rollDuration = 1000 + Math.random() * 500;
+            
+            // Base speed is now scaled by wave number
+            enemyShip.currentSpeed = this.BASE_ENEMY_SPEED + (this.currentWave - 1) * 0.01;
             
             // Create health bar for the enemy (a plane above the ship)
             const healthBar = BABYLON.MeshBuilder.CreatePlane("enemyHealthBar", {size: 2}, this.scene);
@@ -901,9 +907,22 @@
             healthBar.material = healthMaterial;
             healthBar.scaling.x = 1; // 100% width
 
-            enemyShip.healthBar = healthBar; // Assign the health bar to the enemy ship
+            enemyShip.healthBar = healthBar; // Assign the health bar to the enemy ship.
+            enemyShip.direction = new BABYLON.Vector3(0, 0, 0); // Inicializar dirección
 
             return enemyShip;
+        }
+
+        // Returns a random personality type for enemy ships
+        getRandomPersonality() {
+            const types = ['AGGRESSIVE', 'CAUTIOUS', 'FLANKER', 'SNIPER', 'BERSERKER'];
+            return types[Math.floor(Math.random() * types.length)];
+        }
+
+        // Returns a random attack pattern for enemy ships
+        getRandomAttackPattern() {
+            const patterns = ['DIRECT', 'ZIGZAG', 'SPIRAL', 'DIVE', 'SWARM'];
+            return patterns[Math.floor(Math.random() * patterns.length)];
         }
 
         // Creates a support ship (ally)
@@ -953,13 +972,13 @@
                 (Math.random() - 0.5) * 5,
                 Math.sin(angle) * distance
             ));
-            //supportShip.rotation = new BABYLON.Vector3(0, Math.PI, 0);
 
             supportShip.health = this.SUPPORT_SHIP_HEALTH;
             supportShip.maxHealth = this.SUPPORT_SHIP_HEALTH;
             supportShip.lastShot = 0;
             supportShip.fireRate = this.SUPPORT_SHIP_COOLDOWN;
             supportShip.currentSpeed = this.SUPPORT_SHIP_SPEED;
+            supportShip.patrolAngle = Math.random() * Math.PI * 2;
 
             // Create health bar for the support ship
             const healthBar = BABYLON.MeshBuilder.CreatePlane("supportHealthBar", {size: 1}, this.scene);
@@ -995,17 +1014,29 @@
             this.playerHealth = 100;
             this.updateHealthBar();
             
+            // Adjust aggression based on perceived threat
+            const adaptiveAggression = this.ENEMY_AGGRESSION_LEVEL + this.PLAYER_THREAT_LEVEL * 0.3;
+            
             // Spawn enemies
             for (let i = 0; i < enemyCount; i++) {
                 await new Promise(resolve => setTimeout(resolve, i * 500)); 
                 const enemy = await this.createEnemyShip();
+                
+                // Set aggression level with some variation
+                enemy.aggression = Math.min(1, adaptiveAggression + (Math.random() * 0.2 - 0.1));
+                
+                // Enemies more cautious if player is very threatening
+                if (this.PLAYER_THREAT_LEVEL > 0.7 && Math.random() < 0.5) {
+                    enemy.personality = 'CAUTIOUS';
+                }
+                
                 this.enemyShips.push(enemy);
                 this.updateUI();
                 console.log(`Enemy ${i + 1} of ${enemyCount} created`);
             }
 
-            // Occasionally spawn support ships (increased maxSupportShips)
-            const maxSupportShips = 3; // Increased from 2 to 3
+            // Occasionally spawn support ships
+            const maxSupportShips = 3;
             const spawnChance = 0.6; // 60% chance to spawn a support ship per "slot"
             for (let i = 0; i < maxSupportShips; i++) {
                 if (Math.random() < spawnChance) {
@@ -1111,8 +1142,8 @@
             this.projectiles.push(torpedo);
         }
 
-        // Finds the closest enemy ship to the given position (player or support ship)
-        findClosestEnemy(position) { // Removed default player position to make it generic
+        // Finds the closest enemy ship to the given position
+        findClosestEnemy(position) {
             if (this.enemyShips.length === 0) return null;
             
             let closestEnemy = null;
@@ -1200,114 +1231,337 @@
                 if (!enemy || enemy.isDisposed()) return;
                 
                 const now = performance.now();
-                
-                // Find the closest target (player or support ship)
+                const deltaTime = this.engine.getDeltaTime();
                 const target = this.findClosestTargetForEnemy(enemy);
-
+                
                 if (!target || target.isDisposed()) {
-                    // If no target, perhaps patrol or retreat
-                    enemy.state = 'PATROLLING'; 
-                    enemy.position.addInPlace(enemy.patrolDirection.scale(enemy.currentSpeed * 0.5));
-                    enemy.rotation.y += (Math.random() - 0.5) * 0.1;
+                    enemy.state = 'PATROLLING';
+                    this.executePatrolBehavior(enemy, deltaTime);
                     this.updateHealthBarUI(enemy);
-                    return; // Skip further logic if no target
+                    return;
                 }
 
                 const distanceToTarget = BABYLON.Vector3.Distance(enemy.position, target.position);
+                const directionToTarget = target.position.subtract(enemy.position).normalize();
                 
-                // --- Logic for random rolling behavior ---
-                if (now - enemy.lastRollTime > enemy.rollInterval) {
-                    enemy.rollAngleTarget = (Math.random() > 0.5 ? 1 : -1) * BABYLON.Tools.ToRadians(35);
-                    enemy.lastRollTime = now;
-                    enemy.rollInterval = enemy.rollDuration + 5000 + Math.random() * 5000;
+                // Comportamiento de evasión mejorado
+                if (now - enemy.lastEvasionTime > enemy.evasionCooldown && 
+                    this.shouldEvade(enemy, target, distanceToTarget)) {
+                    this.executeEvasion(enemy, target, now);
+                    return;
                 }
                 
-                const rollProgress = Math.min((now - enemy.lastRollTime) / enemy.rollDuration, 1);
-                enemy.rotation.z = BABYLON.Scalar.Lerp(enemy.rotation.z, enemy.rollAngleTarget, 0.1);
+                // Lógica de estados basada en personalidad
+                switch(enemy.personality) {
+                    case 'AGGRESSIVE':
+                        this.updateAggressiveEnemy(enemy, target, distanceToTarget, now, deltaTime);
+                        break;
+                    case 'CAUTIOUS':
+                        this.updateCautiousEnemy(enemy, target, distanceToTarget, now, deltaTime);
+                        break;
+                    case 'FLANKER':
+                        this.updateFlankerEnemy(enemy, target, distanceToTarget, now, deltaTime);
+                        break;
+                    case 'SNIPER':
+                        this.updateSniperEnemy(enemy, target, distanceToTarget, now, deltaTime);
+                        break;
+                    case 'BERSERKER':
+                        this.updateBerserkerEnemy(enemy, target, distanceToTarget, now, deltaTime);
+                        break;
+                    default:
+                        this.updateGenericEnemy(enemy, target, distanceToTarget, now, deltaTime);
+                }
+                
+                // Ataque basado en patrón
+                this.executeAttackPattern(enemy, target, distanceToTarget, now);
+                
+                // Actualizar rotación para mirar al objetivo
+                this.updateEnemyRotation(enemy, directionToTarget, deltaTime);
+                
+                // Chequear colisiones
+                if (distanceToTarget < this.COLLISION_DISTANCE) {
+                    this.handleEnemyCollision(enemy, index, target);
+                }
+                
+                this.updateHealthBarUI(enemy);
+            });
+        }
 
-                if (now - enemy.lastRollTime > enemy.rollDuration && enemy.rollAngleTarget !== 0) {
+        // Executes patrol behavior for enemy
+        executePatrolBehavior(enemy, deltaTime) {
+            enemy.position.addInPlace(enemy.patrolDirection.scale(enemy.currentSpeed * 0.5 * deltaTime / 1000));
+            enemy.rotation.y += (Math.random() - 0.5) * 0.1;
+            
+            // Occasionally change patrol direction
+            if (Math.random() < 0.01) {
+                enemy.patrolDirection = new BABYLON.Vector3(
+                    (Math.random() - 0.5) * 2,
+                    (Math.random() - 0.5) * 0.5,
+                    (Math.random() - 0.5) * 2
+                ).normalize();
+            }
+        }
+
+        // Determines if enemy should evade
+        shouldEvade(enemy, target, distance) {
+            // Evade if wounded and close
+            if (distance < 15 && enemy.health < enemy.maxHealth * 0.5) {
+                return true;
+            }
+            
+            // Check for nearby projectiles
+            const nearbyProjectiles = this.projectiles.filter(proj => 
+                !proj.isEnemy && BABYLON.Vector3.Distance(proj.position, enemy.position) < 10
+            );
+            
+            return nearbyProjectiles.length > 0 && Math.random() < this.ENEMY_EVASION_SKILL;
+        }
+
+        // Executes evasion maneuver
+        executeEvasion(enemy, target, now) {
+            enemy.lastEvasionTime = now;
+            enemy.evasionCooldown = 2000 + Math.random() * 3000;
+            
+            // Evasion direction (away from target with random component)
+            const evadeDirection = enemy.position.subtract(target.position)
+                .add(new BABYLON.Vector3(
+                    (Math.random() - 0.5) * 2,
+                    (Math.random() - 0.5),
+                    (Math.random() - 0.5) * 2
+                )).normalize();
+            
+            // Apply evasion movement
+            const evadeSpeed = enemy.currentSpeed * 2.5; // Faster when evading
+            enemy.position.addInPlace(evadeDirection.scale(evadeSpeed));
+            
+            // Possible roll during evasion
+            enemy.rollAngleTarget = (Math.random() > 0.5 ? 1 : -1) * BABYLON.Tools.ToRadians(45);
+            enemy.lastRollTime = now;
+            enemy.rollDuration = 800 + Math.random() * 500;
+        }
+
+        // Updates aggressive enemy behavior
+        updateAggressiveEnemy(enemy, target, distance, now, deltaTime) {
+            // Aggressive behavior: always attacks directly
+            if (distance > this.ENEMY_STOP_DISTANCE) {
+                const approachSpeed = enemy.currentSpeed * (1 + enemy.aggression * 0.5);
+                enemy.position.addInPlace(enemy.direction.scale(approachSpeed * deltaTime / 1000));
+                
+                if (distance < this.ENEMY_FIRE_RANGE && now - enemy.lastShot > enemy.fireRate) {
+                    this.enemyFire(enemy, target.position);
+                    enemy.lastShot = now;
+                }
+            } else {
+                // If too close, retreat to attack again
+                enemy.position.addInPlace(enemy.direction.scale(-enemy.currentSpeed * deltaTime / 1000));
+            }
+        }
+
+        // Updates cautious enemy behavior
+updateCautiousEnemy(enemy, target, distance, now, deltaTime) {
+    // Asegurarse que la dirección está definida
+    if (!enemy.direction) {
+        enemy.direction = target.position.subtract(enemy.position).normalize();
+    }
+
+    // Cautious behavior: keeps distance and fires from range
+    if (distance > this.ENEMY_LONG_RANGE) {
+        const approachSpeed = enemy.currentSpeed * 0.7;
+        // Verificar que direction existe antes de usarlo
+        if (enemy.direction) {
+            enemy.position.addInPlace(enemy.direction.scale(approachSpeed * deltaTime / 1000));
+        }
+    } else if (distance < this.ENEMY_FIRE_RANGE * 0.8) {
+        // Retreat if too close
+        if (enemy.direction) {
+            enemy.position.addInPlace(enemy.direction.scale(-enemy.currentSpeed * deltaTime / 1000));
+        }
+    }
+    
+    // Fire when in optimal range
+    if (distance < this.ENEMY_LONG_RANGE && now - enemy.lastShot > enemy.fireRate) {
+        this.enemyFire(enemy, target.position);
+        enemy.lastShot = now;
+    }
+}
+
+        // Updates flanker enemy behavior
+        updateFlankerEnemy(enemy, target, distance, now, deltaTime) {
+            // Flanker behavior: tries to attack from the sides
+            if (enemy.state !== 'FLANKING' || distance > this.ENEMY_LONG_RANGE * 1.5) {
+                enemy.state = 'FLANKING';
+                enemy.flankDirection = new BABYLON.Vector3(
+                    (Math.random() - 0.5) * 2,
+                    (Math.random() - 0.5) * 0.5,
+                    (Math.random() - 0.5) * 2
+                ).normalize();
+            }
+            
+            // Flanking movement
+            const flankVector = enemy.flankDirection.clone();
+            flankVector.normalize();
+            enemy.position.addInPlace(flankVector.scale(enemy.currentSpeed * 0.7 * deltaTime / 1000));
+            
+            // Attack when in position
+            if (distance < this.ENEMY_FIRE_RANGE * 1.2 && now - enemy.lastShot > enemy.fireRate) {
+                this.enemyFire(enemy, target.position);
+                enemy.lastShot = now;
+            }
+        }
+
+        // Updates sniper enemy behavior
+        updateSniperEnemy(enemy, target, distance, now, deltaTime) {
+            // Sniper behavior: stays at long range and fires precise shots
+            if (distance > this.ENEMY_LONG_RANGE * 0.8) {
+                const approachSpeed = enemy.currentSpeed * 0.5;
+                enemy.position.addInPlace(enemy.direction.scale(approachSpeed * deltaTime / 1000));
+            } else if (distance < this.ENEMY_LONG_RANGE * 0.7) {
+                // Maintain optimal distance
+                enemy.position.addInPlace(enemy.direction.scale(-enemy.currentSpeed * 0.3 * deltaTime / 1000));
+            }
+            
+            // Fire precise shots
+            if (distance < this.ENEMY_LONG_RANGE && now - enemy.lastShot > enemy.fireRate * 1.5) {
+                this.enemyFire(enemy, target.position);
+                enemy.lastShot = now;
+            }
+        }
+
+        // Updates berserker enemy behavior
+        updateBerserkerEnemy(enemy, target, distance, now, deltaTime) {
+            // Berserker behavior: charges directly at target with no regard for safety
+            const chargeSpeed = enemy.currentSpeed * 1.8;
+            enemy.position.addInPlace(enemy.direction.scale(chargeSpeed * deltaTime / 1000));
+            
+            // Continuous fire when in range
+            if (distance < this.ENEMY_FIRE_RANGE * 1.5 && now - enemy.lastShot > enemy.fireRate * 0.7) {
+                this.enemyFire(enemy, target.position);
+                enemy.lastShot = now;
+            }
+        }
+
+        // Updates generic enemy behavior (fallback)
+        updateGenericEnemy(enemy, target, distance, now, deltaTime) {
+            // Generic behavior: approach and fire
+            if (distance > this.ENEMY_STOP_DISTANCE) {
+                enemy.position.addInPlace(enemy.direction.scale(enemy.currentSpeed * deltaTime / 1000));
+                
+                if (distance < this.ENEMY_FIRE_RANGE && now - enemy.lastShot > enemy.fireRate) {
+                    this.enemyFire(enemy, target.position);
+                    enemy.lastShot = now;
+                }
+            } else {
+                enemy.state = 'RETREATING';
+            }
+        }
+
+        // Executes attack pattern for enemy
+executeAttackPattern(enemy, target, distance, now) {
+    // Asegurarse que el patrón está inicializado
+    if (!enemy.patternDirection) {
+        enemy.patternDirection = new BABYLON.Vector3(
+            (Math.random() - 0.5) * 2,
+            0,
+            -1 // Siempre hacia adelante
+        ).normalize();
+        enemy.lastPatternChange = now;
+    }
+
+    switch(enemy.attackPattern) {
+        case 'ZIGZAG':
+            // Zigzag movement
+            if (now - enemy.lastPatternChange > 1000) {
+                enemy.patternDirection = new BABYLON.Vector3(
+                    (Math.random() - 0.5) * 2,
+                    0,
+                    -1 // Always forward
+                ).normalize();
+                enemy.lastPatternChange = now;
+            }
+            
+            // Verificar que patternDirection existe antes de usarlo
+            if (enemy.patternDirection) {
+                enemy.position.addInPlace(enemy.patternDirection.scale(enemy.currentSpeed * 0.3));
+            }
+            break;
+            
+        case 'SPIRAL':
+            // Spiral movement
+            const spiralTime = (now % 6000) / 6000; // 0-1 over 6 seconds
+            const spiralRadius = 5;
+            const spiralOffset = new BABYLON.Vector3(
+                Math.cos(spiralTime * Math.PI * 2) * spiralRadius,
+                Math.sin(spiralTime * Math.PI * 2) * spiralRadius,
+                0
+            );
+            
+            // Verificar que spiralOffset existe antes de usarlo
+            if (spiralOffset) {
+                enemy.position.addInPlace(spiralOffset.normalize().scale(enemy.currentSpeed * 0.2));
+            }
+            break;
+            
+        case 'DIVE':
+            // Dive attack pattern
+            if (enemy.state !== 'DIVING') {
+                enemy.state = 'DIVING';
+                enemy.diveStartTime = now;
+                enemy.diveDuration = 3000 + Math.random() * 2000;
+                enemy.diveFrom = enemy.position.clone();
+                enemy.diveTo = target.position.add(new BABYLON.Vector3(
+                    (Math.random() - 0.5) * 10,
+                    -5,
+                    (Math.random() - 0.5) * 10
+                ));
+            }
+            
+            const diveProgress = Math.min((now - enemy.diveStartTime) / enemy.diveDuration, 1);
+            
+            // Verificar que diveFrom y diveTo existen antes de usarlos
+            if (enemy.diveFrom && enemy.diveTo) {
+                enemy.position = BABYLON.Vector3.Lerp(enemy.diveFrom, enemy.diveTo, diveProgress);
+            }
+            
+            if (diveProgress >= 1) {
+                enemy.state = 'RETREATING';
+            }
+            break;
+            
+        default:
+            // Comportamiento por defecto si el patrón no está reconocido
+            const defaultDirection = target.position.subtract(enemy.position).normalize();
+            enemy.position.addInPlace(defaultDirection.scale(enemy.currentSpeed * 0.1));
+    }
+}
+
+        // Updates enemy rotation to face target
+        updateEnemyRotation(enemy, directionToTarget, deltaTime) {
+            // Smooth rotation towards target
+            const targetRotation = Math.atan2(directionToTarget.x, directionToTarget.z);
+            enemy.rotation.y += (targetRotation - enemy.rotation.y) * 0.1;
+            
+            // Apply roll if active
+            if (enemy.rollAngleTarget !== 0) {
+                const rollProgress = Math.min((performance.now() - enemy.lastRollTime) / enemy.rollDuration, 1);
+                enemy.rotation.z = BABYLON.Scalar.Lerp(enemy.rotation.z, enemy.rollAngleTarget, 0.1);
+                
+                if (performance.now() - enemy.lastRollTime > enemy.rollDuration && enemy.rollAngleTarget !== 0) {
                     enemy.rollAngleTarget = 0;
                 }
-                // --- End of rolling logic ---
+            }
+        }
 
-                // State change logic
-                enemy.stateTimer += this.engine.getDeltaTime();
-                if (enemy.stateTimer > enemy.stateChangeInterval) {
-                    enemy.stateTimer = 0;
-                    enemy.stateChangeInterval = 2000 + Math.random() * 5000;
-                    
-                    const behaviorChance = Math.random();
-                    if (distanceToTarget > this.ENEMY_LONG_RANGE && behaviorChance < 0.2) {
-                        enemy.state = 'LONG_RANGE_ATTACK';
-                    } else if (distanceToTarget > this.ENEMY_FIRE_RANGE && behaviorChance < 0.5) {
-                        enemy.state = 'PATROLLING';
-                    } else if (distanceToTarget > this.ENEMY_STOP_DISTANCE) {
-                        enemy.state = 'APPROACHING';
-                    } else {
-                         enemy.state = 'RETREATING';
-                    }
+        // Handles enemy collision with target
+        handleEnemyCollision(enemy, index, target) {
+            if (target === this.playerShip) {
+                this.damagePlayer(this.COLLISION_DAMAGE);
+            } else { // It's a support ship
+                const supportIndex = this.supportShips.indexOf(target);
+                if (supportIndex !== -1) {
+                    this.damageSupportShip(target, supportIndex, this.COLLISION_DAMAGE);
                 }
-
-                switch (enemy.state) {
-                    case 'APPROACHING':
-                        if (distanceToTarget > this.ENEMY_STOP_DISTANCE) {
-                            const direction = target.position.subtract(enemy.position);
-                            direction.normalize();
-                            enemy.position.addInPlace(direction.scale(enemy.currentSpeed));
-                            enemy.lookAt(target.position);
-                            
-                            if (enemy.canFire && (now - enemy.lastShot > enemy.fireRate) && distanceToTarget < this.ENEMY_FIRE_RANGE) {
-                                this.enemyFire(enemy, target.position); // Pass target position
-                                enemy.lastShot = now;
-                            }
-                        } else {
-                            enemy.state = 'RETREATING';
-                        }
-                        break;
-
-                    case 'RETREATING':
-                        const retreatDirection = enemy.position.subtract(target.position);
-                        retreatDirection.normalize();
-                        enemy.position.addInPlace(retreatDirection.scale(enemy.currentSpeed * this.ENEMY_RETREAT_SPEED_MULTIPLIER));
-                        enemy.lookAt(enemy.position.add(retreatDirection));
-
-                        if (distanceToTarget > enemy.retreatTargetDistance) {
-                            enemy.state = 'APPROACHING';
-                        }
-                        break;
-
-                    case 'PATROLLING':
-                        enemy.position.addInPlace(enemy.patrolDirection.scale(enemy.currentSpeed * 0.5));
-                        enemy.rotation.y += (Math.random() - 0.5) * 0.1;
-                        break;
-
-                    case 'LONG_RANGE_ATTACK':
-                        enemy.lookAt(target.position);
-
-                        enemy.position.addInPlace(target.position.subtract(enemy.position).normalize().scale(enemy.currentSpeed * 0.2));
-                        
-                        if (enemy.canFire && (now - enemy.lastShot > enemy.fireRate) && distanceToTarget < this.ENEMY_LONG_RANGE) {
-                            this.enemyFire(enemy, target.position); // Pass target position
-                            enemy.lastShot = now;
-                            enemy.state = 'PATROLLING'; 
-                        }
-                        break;
-                }
-
-                // Check for direct collision with the target
-                if (distanceToTarget < this.COLLISION_DISTANCE) {
-                    if (target === this.playerShip) {
-                        this.damagePlayer(this.COLLISION_DAMAGE);
-                    } else { // It's a support ship
-                        const supportIndex = this.supportShips.indexOf(target);
-                        if (supportIndex !== -1) {
-                            this.damageSupportShip(target, supportIndex, this.COLLISION_DAMAGE);
-                        }
-                    }
-                    this.removeEnemy(index); // Enemy is destroyed after collision
-                }
-                this.updateHealthBarUI(enemy); 
-            });
+            }
+            this.removeEnemy(index); // Enemy is destroyed after collision
         }
 
         // Updates support ships' position, rotation, and behavior
@@ -1316,50 +1570,127 @@
                 if (!support || support.isDisposed()) return;
 
                 const now = performance.now();
-
-                // Find closest enemy to target
-                const closestEnemy = this.findClosestEnemy(support.position); // Use generic findClosestEnemy
+                const deltaTime = this.engine.getDeltaTime();
+                
+                // Behavior based on situation
+                const closestEnemy = this.findClosestEnemy(support.position);
+                const distanceToPlayer = BABYLON.Vector3.Distance(support.position, this.playerShip.position);
+                
                 if (closestEnemy && !closestEnemy.isDisposed()) {
                     const distanceToEnemy = BABYLON.Vector3.Distance(support.position, closestEnemy.position);
-                    const directionToEnemy = closestEnemy.position.subtract(support.position).normalize();
-
-                    // Move towards enemy
-                    support.position.addInPlace(directionToEnemy.scale(support.currentSpeed));
-                    // Look at the enemy
-                    support.lookAt(closestEnemy.position);
-
-                    // Fire at enemy if in range and cooldown allows
-                    if (now - support.lastShot > support.fireRate && distanceToEnemy < this.SUPPORT_SHIP_FIRE_RANGE) {
-                        this.supportFire(support, closestEnemy.position);
-                        support.lastShot = now;
+                    
+                    // Decide whether to protect player or attack
+                    if (distanceToPlayer < this.SUPPORT_SHIP_PROTECT_RANGE && 
+                        Math.random() < this.SUPPORT_SHIP_COVER_CHANCE) {
+                        this.protectPlayer(support, closestEnemy, now, deltaTime);
+                    } else {
+                        this.attackEnemy(support, closestEnemy, now, deltaTime);
                     }
                 } else {
-                    // If no enemies, slowly move towards player ship or patrol
-                    const directionToPlayer = this.playerShip.position.subtract(support.position);
-                    if (directionToPlayer.length() > 10) { // Keep some distance from player
-                        directionToPlayer.normalize();
-                        support.position.addInPlace(directionToPlayer.scale(support.currentSpeed * 0.5));
-                    }
-                    // Optionally add some random patrol if very far from player
+                    // Patrol near player
+                    this.patrolNearPlayer(support, deltaTime);
                 }
-                this.updateHealthBarUI(support); 
+                
+                this.updateHealthBarUI(support);
             });
         }
 
+        // Support ship protects player
+        protectPlayer(support, enemy, now, deltaTime) {
+            // Position between player and enemy
+            const protectionPoint = BABYLON.Vector3.Lerp(
+                this.playerShip.position,
+                enemy.position,
+                0.3 // 30% towards enemy
+            );
+            
+            const moveDirection = protectionPoint.subtract(support.position).normalize();
+            support.position.addInPlace(moveDirection.scale(support.currentSpeed * deltaTime / 1000));
+            
+            // Aim and fire at enemy
+            support.lookAt(enemy.position);
+            
+            if (now - support.lastShot > support.fireRate) {
+                this.supportFire(support, enemy.position);
+                support.lastShot = now;
+            }
+        }
+
+        // Support ship attacks enemy
+        attackEnemy(support, enemy, now, deltaTime) {
+            const distanceToEnemy = BABYLON.Vector3.Distance(support.position, enemy.position);
+            const attackDirection = enemy.position.subtract(support.position).normalize();
+            
+            // Attack movement
+            if (distanceToEnemy > this.SUPPORT_SHIP_FIRE_RANGE * 0.8) {
+                support.position.addInPlace(attackDirection.scale(support.currentSpeed * deltaTime / 1000));
+            }
+            
+            // Fire
+            support.lookAt(enemy.position);
+            if (now - support.lastShot > support.fireRate && distanceToEnemy < this.SUPPORT_SHIP_FIRE_RANGE * 1.2) {
+                this.supportFire(support, enemy.position);
+                support.lastShot = now;
+            }
+        }
+
+        // Support ship patrols near player
+        patrolNearPlayer(support, deltaTime) {
+            // Orbit around player at medium distance
+            support.patrolAngle += 0.002 * deltaTime;
+            const patrolRadius = 15 + Math.random() * 10;
+            
+            const targetPosition = new BABYLON.Vector3(
+                this.playerShip.position.x + Math.cos(support.patrolAngle) * patrolRadius,
+                this.playerShip.position.y + Math.sin(support.patrolAngle) * 0.5 * patrolRadius,
+                this.playerShip.position.z + Math.sin(support.patrolAngle) * patrolRadius
+            );
+            
+            const moveDirection = targetPosition.subtract(support.position).normalize();
+            support.position.addInPlace(moveDirection.scale(support.currentSpeed * 0.5 * deltaTime / 1000));
+            support.lookAt(this.playerShip.position);
+        }
+
         // An enemy fires a laser
-        enemyFire(enemy, targetPosition) { // Now accepts targetPosition
+        enemyFire(enemy, targetPosition) {
             const laser = BABYLON.MeshBuilder.CreateSphere("enemyLaser", {diameter: 0.15}, this.scene);
             const material = new BABYLON.StandardMaterial("enemyLaserMat", this.scene);
-            material.emissiveColor = new BABYLON.Color3(1, 0, 0); // Red laser
-            laser.material = material;
             
+            // Different colors based on personality
+            switch(enemy.personality) {
+                case 'SNIPER':
+                    material.emissiveColor = new BABYLON.Color3(1, 0.5, 0); // Orange
+                    laser.damage = this.ENEMY_LASER_DAMAGE * 1.5; // More damage
+                    laser.speed = this.ENEMY_LASER_SPEED * 1.3; // Faster
+                    break;
+                case 'BERSERKER':
+                    material.emissiveColor = new BABYLON.Color3(1, 0, 1); // Magenta
+                    laser.damage = this.ENEMY_LASER_DAMAGE * 0.7; // Less damage
+                    laser.speed = this.ENEMY_LASER_SPEED * 0.8; // Slower
+                    break;
+                default:
+                    material.emissiveColor = new BABYLON.Color3(1, 0, 0); // Red
+            }
+            
+            laser.material = material;
             laser.position = enemy.position.clone();
-            // Enemy laser direction towards the target
-            laser.direction = targetPosition.subtract(enemy.position).normalize();
-            laser.speed = this.ENEMY_LASER_SPEED; 
+            
+            // Spread based on personality and situation
+            let spreadFactor = 0.05;
+            if (enemy.state === 'EVADING') spreadFactor *= 2;
+            if (enemy.personality === 'SNIPER') spreadFactor *= 0.5;
+            
+            const baseDirection = targetPosition.subtract(enemy.position).normalize();
+            const spread = new BABYLON.Vector3(
+                (Math.random() - 0.5) * spreadFactor,
+                (Math.random() - 0.5) * spreadFactor,
+                (Math.random() - 0.5) * spreadFactor
+            );
+            
+            laser.direction = baseDirection.add(spread).normalize();
+            laser.speed = this.ENEMY_LASER_SPEED;
             laser.life = 80;
-            laser.isEnemy = true; 
-            laser.damage = this.ENEMY_LASER_DAMAGE; 
+            laser.isEnemy = true;
             
             this.projectiles.push(laser);
         }
@@ -1467,9 +1798,14 @@
             enemy.health -= damage;
             this.updateHealthBarUI(enemy); // Update enemy health bar visually
             
+            // Increase player's perceived threat level
+            this.PLAYER_THREAT_LEVEL = Math.min(1, this.PLAYER_THREAT_LEVEL + 0.05);
+            
             if (enemy.health <= 0) {
                 this.score += 100; // Add points for eliminating an enemy
                 this.removeEnemy(index); // Remove the enemy
+                // Reduce threat when enemy is destroyed
+                this.PLAYER_THREAT_LEVEL = Math.max(0, this.PLAYER_THREAT_LEVEL - 0.02);
             }
         }
 
@@ -1728,4 +2064,5 @@
 </script>
 </body>
 </html>
+
 
