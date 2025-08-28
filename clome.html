@@ -1,0 +1,2820 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Yet Another Space Game — Single File</title>
+</head>
+<body>
+  <style>
+    body{margin:0px; background:#000; overflow: hidden; font-variant: small-caps; font-size: 3vw; color: #fff; animation:z 3s;}
+    #cQ{width: 100%; height: 100%;}
+    .a{float: left; margin-top: .5em; width: 1em; height: .3em; border-radius: .3em; background: #18f}
+    .b {float: left; width: 5em;}
+    .c {background: #222; opacity: .5; width: 8em}
+    @keyframes q{50%{opacity:0;}}
+    .l{animation: q 1s linear infinite;}
+    @keyframes z{from{opacity:0}to{opacity:1}}
+  </style>
+  <canvas id="cQ"></canvas>
+  <div id="qQ" style="position: absolute; left: 30vw; top: 4em; padding: 1em; border-radius: 1vw; background: rgba(0,0,0,.5)">
+    Yet Another Space Game<br><div class="l">Loading...</div><br>
+    <br>
+    <br>Move: WASD/Arrows<br>Aim/Shoot: Mouse/Click<br>Adjust Mouse Sensitivity: +/- 
+  </div>
+
+  <div id="cZ" style="position: absolute; right: -100vh; top: 20%; width: 25vw; background: rgba(0,0,0,.5); padding: 1vw; border-radius: 1vw">
+    Choose your ship.
+    <br/>
+    <div id="cY"></div>
+    <br/><br/>
+    <div class="b">Speed:</div><div id="c0" class="a"></div>
+    <br/>
+    <div class="b">Maneuver:</div><div id="c1" class="a"></div>
+    <br/>
+    <div class="b">Damage:</div><div id="c2" class="a"></div>
+    <br/>
+    <div class="b">Armor:</div><div id="c3" class="a"></div>
+    <div id="cU"  class="b c" style="border: 1px solid #000; border-radius: 3px; text-align: center">Launch
+    </div>
+  </div>
+
+
+  <div id="cW" style="position: absolute; left: 5vw; top: 80%; display: none; text-align: center">
+    <div id="cP"  style="position: absolute; right: 40vw; top: -12vw; width: 30vw; background: rgba(60,60,60,.5); padding: 1vw">
+      Full on scraps. <br>Return to base to use.
+    </div>
+    
+    <div id="cR" style="width: 10vw; height: 3.5vw; border-radius: 2vh; border: #224 2px solid">
+      <div style="opacity: .5">Scraps</div>
+    </div>
+  </div>
+  
+  </div>
+
+
+
+
+
+
+
+
+
+
+<div id="fps" style="position: absolute; left: 50px; top: 400px; color:#fff; font-size: 1vw"></div>
+<div id="debug"  style="position: absolute; left: 0px; top: 600px">
+<img id="debug_img" width="512" style="transform: scaleY(-1);"/>
+</div>
+</body>
+<script>
+
+/* ===== Inlined dat.js ===== */
+// dat.js -- holds all the data files for the game
+
+// Copyright (C) 2020, Nicholas Carlini <nicholas@carlini.com>.
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+// todo space save a bit by getting rid of the unnecessary precision
+var body=[[[0,,127,,29,127,3,29,127,3,,127,3,,,3,18,,3,46,90,133,,46,90,,18,,132,,,,135],600,[0.0433,0.0000,-1.1149],0.0175,[[9,[1,-1,1]],[5,[-1,1,1]]]],[[21,,109,,,127,,56,127,21,55,109,,71,93,,43,,,,,134],184,[0.2763,-0.0000,-0.1391],0.0077,[[1,[1,-1,1]],[1,[-1,1,1]]]]];
+var wing0=[[[0,52,114,7,49,114,7,31,124,,31,127,,,102,7,3,102,7,24,68,7,49,84,134,136,,52,84,,27,68,133,,40,,7,37,6,137,7,28,6,140,,25,,132,134],494424,[0.0000,-1.7867,-2.6825],0.0320,[[3,[-1,1,1]]]],[0,[1,-1,1]]];
+var wing2=[[[5,35,42,,38,42,,67,,5,60,2,5,2,48,5,42,2,131,,40,,131,,,48,,40,123,5,40,120,5,73,111,140,5,73,84,141,,76,84,132,2,76,114,135,137],125128,[0.0000,-3.0916,-2.9519],0.0352,[[0,[-1,1,1]]]],[0,[1,-1,1]]];
+var cube=[[[0,,,127,,,127,127,,,127,,,127,127,127,127,127,132,127,,127,,,127,136,134,134,134,133],10712,[-10.0000,-10.0000,-10.0000],0.1569,[]]];
+var big_bad1=[[[24,,74,19,,81,14,36,62,7,35,67,,56,59,8,53,55,,54,48,8,51,46,133,10,38,24,13,33,49,15,23,33,20,,26,18,,6,12,,,2,38,21,136,138],217312,[13.6649,0.0000,12.2237],0.2649,[[16,[1,-1,1]]]],[[1,25,7,10,26,9,9,35,23,,35,24,,38,38,9,37,35,11,,50,18,,46,133,135,15,,2,6,,,139],4888,[17.3311,0.0000,19.2696],0.2502,[[2,[1,-1,1]]]]];
+var big_bad2=[[[6,5,,5,5,,6,,,8,,,19,,127,6,38,112,132,5,38,112,5,35,106,5,6,7,135,6,,7,5,,7,4,6,7,5,,,4,5,,3,,,3,5,,4,38,112,3,38,112,131,,,127,131,6,,122,6,,121,4,35,106,138,141,146,148,133,12,,121,152,13,,122,157,157],30833119784,[-3.0601,0.0000,-43.0623],0.6026,[[1,[1,-1,1]]]]];
+var engine=[[[37,31,,37,,,64,,,55,22,,37,40,95,65,26,95,131,79,,95,64,,127,55,22,127,133,37,31,127,22,22,127,13,26,95,22,22,,142,142,14,,,,,95,133,135,14,,127,20,,127,27,18,127,140,38,25,127,144,51,18,127,147,59,,127,59,,87,51,18,87,134,38,25,87,138,27,18,87,132,134,20,,87,132,145],1858636980936,[-8.6512,0.0000,-11.7823],0.1797,[[33,[1,-1,1]]]]];
+var wing5=[[[0,62,36,2,62,34,2,36,21,,35,23,,62,3,,35,,2,36,3,2,62,7,134,134,2,1,15,2,1,24,136,,,26,131,,,12,131,139,139,132],314760,[-0.6611,-39.0314,1.7845],0.4490,[]],[0,[1,-1,1]]];
+var body3=[[[31,,127,28,10,127,31,,89,28,10,89,13,22,89,13,22,127,133,,,127,,25,127,14,50,122,3,51,122,13,45,86,3,46,86,132,3,46,60,,25,55,136,,25,27,,8,,,,,18,,,16,5,,13,7,,133,13,22,27,131,28,10,27,134,31,,27,35,10,55,38,,55,156,156,156,21,25,55,136,139,141,150,19,47,60,153,156,158,136,138,163,168],110341495660240,[-2.0207,0.0000,-12.5519],0.2513,[[27,[1,-1,1]]]]];
+var gunmount=[[[56,106,,83,106,,83,106,49,56,106,49,,49,,,49,49,,,,,,49,56,,106,56,49,106,134,136,83,49,106,83,,106,133],11528,[-1.9874,0.0000,0.0000],0.0940,[[8,[1,-1,1]],[14,[1,1,-1]]]]];
+var nicecube=[[[127,,,127,,114,127,114,114,127,114,,114,127,114,114,127,,,127,,,127,114,114,114,127,,114,127,,,127,114,,127,138,138,137],22392,[0.0000,0.0000,0.0000],0.0784,[[8,[1,1,-1]],[2,[1,-1,1]],[8,[-1,1,1]]]]];
+
+</script><script>
+
+/* ===== Inlined jsfxr.js ===== */
+// jsfxr.js -- a heavily compressed audio engine
+
+// Copyright (C) 2020, Nicholas Carlini <nicholas@carlini.com>.
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+// ----------------------------------------------------------------
+// ----------------------------------------------------------------
+// Original code licensed as follows
+
+/**
+ * SfxrParams
+ *
+ * Copyright 2010 Thomas Vian
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ * @author Thomas Vian
+ */
+/** @constructor */
+
+// 10965
+// 10957
+// 10935
+
+  //--------------------------------------------------------------------------
+  //
+  //  Settings String Methods
+  //
+  //--------------------------------------------------------------------------
+
+  /**
+   * Parses a settings array into the parameters
+   * @param array Array of the settings values, where elements 0 - 23 are
+   *                a: waveType
+   *                b: attackTime
+   *                c: sustainTime
+   *                d: sustainPunch
+   *                e: decayTime
+   *                f: startFrequency
+   *                g: minFrequency
+   *                h: slide
+   *                i: deltaSlide
+   *                j: vibratoDepth
+   *                k: vibratoSpeed
+   *                l: changeAmount
+   *                m: changeSpeed
+   *                n: squareDuty
+   *                o: dutySweep
+   *                p: repeatSpeed
+   *                q: phaserOffset
+   *                r: phaserSweep
+   *                s: lpFilterCutoff
+   *                t: lpFilterCutoffSweep
+   *                u: lpFilterResonance
+   *                v: hpFilterCutoff
+   *                w: hpFilterCutoffSweep
+   *                x: masterVolume
+   * @return If the string successfully parsed
+   */
+
+/**
+ * SfxrSynth
+ *
+ * Copyright 2010 Thomas Vian
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ * @author Thomas Vian
+ */
+/** @constructor */
+class SfxrSynth {
+
+    constructor() {
+    // All variables are kept alive through closures
+
+  //--------------------------------------------------------------------------
+  //
+  //  Sound Parameters
+  //
+  //--------------------------------------------------------------------------
+
+        this._params = {};  // Params instance
+
+  //--------------------------------------------------------------------------
+  //
+  //  Synth Variables
+  //
+  //--------------------------------------------------------------------------
+
+  var _envelopeLengths, // Length of the attack stage
+      // Length of the sustain stage
+      // Length of the decay stage
+
+      _period,          // Period of the wave
+      _maxPeriod,       // Maximum period before sound stops (from minFrequency)
+
+      _slide,           // Note slide
+      _deltaSlide,      // Change in slide
+
+      _changeAmount,    // Amount to change the note by
+      _changeTime,      // Counter for the note change
+      _changeLimit,     // Once the time reaches this limit, the note changes
+
+      _squareDuty,      // Offset of center switching point in the square wave
+      _dutySweep;       // Amount to change the duty by
+
+  //--------------------------------------------------------------------------
+  //
+  //  Synth Methods
+  //
+  //--------------------------------------------------------------------------
+
+  /**
+   * Resets the runing variables from the params
+   * Used once at the start (total reset) and for the repeat effect (partial reset)
+   */
+  this.reset = () => {
+    // Shorter reference
+    var p = this._params;
+
+    _period       = 100 / (p.f**2 + .001);
+    _maxPeriod    = 100 / (p.g**2   + .001);
+
+    _slide        = 1 - p.h**3 * .01;
+      _deltaSlide   = -(p.i**3) * .000001;
+
+    if (p.a==3) {
+      _squareDuty = .5 - p.n / 2;
+      _dutySweep  = -p.o * .00005;
+    }
+
+    _changeAmount =  1 + p.l**2 * (p.l > 0 ? -.9 : 10);
+    _changeTime   = 0;
+    _changeLimit  = p.m == 1 ? 0 : (1 - p.m)**2 * 20000 + 32;
+  }
+
+  // I split the reset() fn into two fn for better readability
+  this.totalReset = () => {
+    this.reset();
+
+    // Shorter reference
+    var p = this._params;
+
+    // Calculating the length is all that remained here, everything else moved somewhere
+      _envelopeLengths = [p.b**2 * 100000,
+                          p.c**2 * 100000,
+                          p.e**2 * 100000,
+                         1]
+    // Full length of the volume envelop (and therefore sound)
+      // Make sure the length can be divided by 3 so we will not need the padding "==" after base64 encode
+      // TODO I removed a /3 |0 *3, is this okay?
+      return sum(_envelopeLengths)
+  }
+
+  /**
+   * Writes the wave to the supplied buffer ByteArray
+   * @param buffer A ByteArray to write the wave to
+   * @return If the wave is finished
+   */
+  this.synthWave = (buffer, length) => {
+    // Shorter reference
+    var p = this._params;
+
+    // If the filters are active
+    var _filters = p.s != 1 || p.v,
+        // Cutoff multiplier which adjusts the amount the wave position can move
+        _hpFilterCutoff = p.v**2 * .1,
+        // Speed of the high-pass cutoff multiplier
+        _hpFilterDeltaCutoff = 1 + p.w * .0003,
+        // Cutoff multiplier which adjusts the amount the wave position can move
+        _lpFilterCutoff = p.s**3 * .1,
+        // masterVolume * masterVolume (for quick calculations)
+        _masterVolume = p.x**2,
+        // If the phaser is active
+        _phaser = p.q || p.r,
+        // Phase offset for phaser effect
+        _phaserOffset = p.q**2 * (p.q < 0 ? -1020 : 1020),
+        // Once the time reaches this limit, some of the    iables are reset
+        _repeatLimit = p.p ? ((1 - p.p)**2 * 20000 | 0) + 32 : 0,
+        // Amount to change the period of the wave by at the peak of the vibrato wave
+        _vibratoAmplitude = p.j / 2,
+        // The type of wave to generate
+        _waveType = p.a;
+
+    var _envelopeLength      = _envelopeLengths[0]     // Length of the current envelope stage
+
+    // Damping muliplier which restricts how fast the wave position can move
+      var _lpFilterDamping = 5 / (1 + p.u**2 * 20) * (.01 + _lpFilterCutoff);
+      _lpFilterDamping = 1 - clamp(_lpFilterDamping,0,.8);
+
+    var _finished = false,     // If the sound has finished
+        _envelopeStage    = 0, // Current stage of the envelope (attack, sustain, decay, end)
+        _envelopeTime     = 0, // Current time through current enelope stage
+        _envelopeVolume   = 0, // Current volume of the envelope
+        _hpFilterPos      = 0, // Adjusted wave position after high-pass filter
+        _lpFilterDeltaPos = 0, // Change in low-pass wave position, as allowed by the cutoff and damping
+        _lpFilterOldPos,       // Previous low-pass wave position
+        _lpFilterPos      = 0, // Adjusted wave position after low-pass filter
+        _periodTemp,           // Period modified by vibrato
+        _phase            = 0, // Phase through the wave
+        _phaserInt,            // Integer phaser offset, for bit maths
+        _phaserPos        = 0, // Position through the phaser buffer
+        _pos,                  // Phase expresed as a Number from 0-1, used for fast sin approx
+        _repeatTime       = 0, // Counter for the repeats
+        _sample,               // Sub-sample calculated 8 times per actual sample, averaged out to get the super sample
+        lastOut = 0,
+        _vibratoPhase     = 0; // Phase through the vibrato sine wave
+
+    // Buffer of wave values used to create the out of phase second wave
+    var _phaserBuffer = new Array(1024),
+        // Buffer of random values used to generate noise
+        _noiseBuffer  = range(32).map(x=>urandom());
+      _phaserBuffer.fill(0);
+
+    for (var i = 0; i < length; i++) {
+      if (_finished) {
+        return i;
+      }
+
+      // Repeats every _repeatLimit times, partially resetting the sound parameters
+      if (_repeatLimit) {
+        if (++_repeatTime >= _repeatLimit) {
+          _repeatTime = 0;
+          this.reset();
+        }
+      }
+
+      // If _changeLimit is reached, shifts the pitch
+      if (_changeLimit) {
+        if (++_changeTime >= _changeLimit) {
+          _changeLimit = 0;
+          _period *= _changeAmount;
+        }
+      }
+
+      // Acccelerate and apply slide
+      _slide += _deltaSlide;
+      _period *= _slide;
+
+      // Checks for frequency getting too low, and stops the sound if a minFrequency was set
+      if (_period > _maxPeriod) {
+          _period = _maxPeriod;
+          _finished = (p.g > 0);
+      }
+
+      _periodTemp = _period;
+
+      // Applies the vibrato effect
+      if (_vibratoAmplitude > 0) {
+        _vibratoPhase += p.k**2 * .01;
+        _periodTemp *= 1 + Math.sin(_vibratoPhase) * _vibratoAmplitude;
+      }
+
+        _periodTemp = clamp(_periodTemp,8,1e9)|0;
+        // Sweeps the square duty
+        // todo space don't use wave type 3?
+      if (_waveType == 3) {
+          _squareDuty = clamp(_squareDuty+_dutySweep,0,.5);
+      }
+
+      // Moves through the different stages of the volume envelope
+      if (++_envelopeTime > _envelopeLength) {
+        _envelopeTime = 0;
+
+          _envelopeLength = _envelopeLengths[++_envelopeStage];
+      }
+
+        // Sets the volume based on the position in the envelope
+        var r = _envelopeTime / _envelopeLengths[_envelopeStage]
+
+        _envelopeVolume = [r, 1 + (1 - r) * 2 * p.d, 1 - r, 0][_envelopeStage]
+        _finished |= _envelopeStage == 3;
+
+      // Moves the phaser offset
+      if (_phaser) {
+          _phaserOffset += p.r**3 * .2;
+
+          // todo space this can be a clamp if I do the negate. Maybe use math.abs?
+        _phaserInt = _phaserOffset | 0;
+        if (_phaserInt < 0) {
+          _phaserInt = -_phaserInt;
+        } else if (_phaserInt > 1023) {
+          _phaserInt = 1023;
+        }
+      }
+
+      // Moves the high-pass filter cutoff
+      if (_filters && _hpFilterDeltaCutoff) {
+          _hpFilterCutoff = clamp(_hpFilterCutoff*_hpFilterDeltaCutoff,.00001,.1);
+      }
+
+        buffer[i] = sum(range(8).map(_=>{
+        // Cycles through the period
+        _phase++;
+        if (_phase >= _periodTemp) {
+          _phase %= _periodTemp;
+
+          // Generates new random noise for this period
+          if (_waveType <= 1) {
+              range(_noiseBuffer.length).map(n=>{
+                  // TODO SPACE make this be a ternary op
+                if (_waveType == 1) {
+                    // Brown for that GAME FEEL
+                    _noiseBuffer[n] = lastOut = (lastOut + (0.02 * urandom())) / 1.02;
+                    _noiseBuffer[n] *= 3.5;
+                } else {
+                    _noiseBuffer[n] = urandom();
+                }
+              })
+          }
+        }
+
+          _sample = [
+              _noiseBuffer[Math.abs(_phase * 32 / _periodTemp | 0)],
+              _noiseBuffer[Math.abs(_phase * 32 / _periodTemp | 0)],
+              NaN,
+              ((_phase / _periodTemp) < _squareDuty) ? .5 : -.5, // 3
+              _sample = 1 - _phase / _periodTemp * 2 // 4
+              ][_waveType]
+
+        // Applies the low and high pass filters
+        if (_filters) {
+          _lpFilterOldPos = _lpFilterPos;
+            _lpFilterCutoff = clamp(_lpFilterCutoff*(1 + p.t * .0001),0,.1);
+
+          if (p.s != 1) {
+            _lpFilterDeltaPos += (_sample - _lpFilterPos) * _lpFilterCutoff;
+            _lpFilterDeltaPos *= _lpFilterDamping;
+          } else {
+            _lpFilterPos = _sample;
+            _lpFilterDeltaPos = 0;
+          }
+
+          _lpFilterPos += _lpFilterDeltaPos;
+
+          _hpFilterPos += _lpFilterPos - _lpFilterOldPos;
+          _hpFilterPos *= 1 - _hpFilterCutoff;
+          _sample = _hpFilterPos;
+        }
+
+            // todo space do I use this?
+        // Applies the phaser effect
+        if (_phaser) {
+          _phaserBuffer[_phaserPos % 1024] = _sample;
+          _sample += _phaserBuffer[(_phaserPos - _phaserInt + 1024) % 1024];
+          _phaserPos++;
+        }
+
+            return _sample;
+        }))* _envelopeVolume * _masterVolume * (.5 + 1.5*(_waveType == 1));
+        
+
+    }
+
+    return length;
+  }
+    }
+}
+
+var cache = {};
+function jsfxr(settings) {
+    // todo space don't need cache
+    if (cache[settings]) return cache[settings];
+    // Initialize SfxrParams
+    // Adapted from http://codebase.es/riffwave/
+    var synth = new SfxrSynth();
+
+    var self = synth._params;
+    range(24).map(i=>self[String.fromCharCode( 97 + i )] = settings[i] || 0);
+
+    self.c = Math.max(self.c, 0.01)
+    // I moved self here from the reset(true) 
+
+    // Synthesize Wave
+    var envelopeFullLength = synth.totalReset();
+    var arr = range(envelopeFullLength|0);
+    synth.synthWave(arr, envelopeFullLength) * 2;
+    
+    return cache[settings] = arr;
+}
+
+
+</script><script>
+
+/* ===== Inlined audio.js ===== */
+// audio.js -- sounds (both audio and music) for the game
+
+// Copyright (C) 2020, Nicholas Carlini <nicholas@carlini.com>.
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+var sounds;
+
+var context = new AudioContext();
+var play = (which, amt) => {
+    if (which === undefined) return; // DEBUGONLY
+    if (last_now-which._last < 120) return;
+    if (which == sounds._gather && last_now-which._last < 1000) return;
+    which._last = last_now;
+    var m = context.createBuffer(1,which.length,48e3);
+    m.copyToChannel(new Float32Array(which), 0, 0);
+    var src = context.createBufferSource();
+    src.buffer = m;
+
+    var gain = context.createGain()
+    gain.gain.value = amt || 1
+    gain.connect(context.destination)
+    src.connect(gain);
+    
+    src.start(); // QQ
+    return src;
+}
+
+var toaudio = x => transpose(x).map(sum);
+
+
+function setup_audio() {
+    /*
+    arr = [
+        1,0.25,0.9,0,0.1,0.4,0.05,-0.2,-0.1,0.55,0.9,0.1,0.7,1,-0.85,1,-0.05,-0.1,0.1,-0.1,0.55,0.35,0,0.05,
+        1,0.75,0.95,0,1,0.35,0.05,-0.2,-0.1,0.55,0.9,0.6,0.9,1,-0.85,1,0.55,0.2,0.1,-0.15,0.35,0,0,0.2,
+        0,0.05,0.2,0.2,0.05,0.05,0,0,0,0,0,-0.65,0,0,0,0,0,0,0.1,-0.8,0,0.05,0,0.25,
+        1,0.1,0.2,0,0.3,0.5,0.1,-0.05,-0.05,0.85,0,0,-1,0,0,0,-0.1,0.7,0.1,-0.05,0.2,0,-1,0.05,
+        1,0.15,0.35,0,0.55,0.2,0,-0.15,-0.05,1,0,0,0,0.2,-0.5,0.95,-0.7,-0.1,0.15,-0.05,0,0,0,0.15,
+        1,0.5,0.7,0,1,0.2,0,-0.15,-0.05,1,0,0,0,0.2,-0.5,0.95,-0.7,-0.1,0.15,-0.05,0,0,0,0.2,
+        1,0.65,0.7,0,0.2,0.35,0,-0.25,0,0.95,0,0,0,0,0,0.05,0.4,0.1,0.1,-0.4,0.85,0,-0.05,0.2,
+        3,.7,0.1,0,0.05,0.1,0,0.1,0,0.45,0,0,0,0.1,-0.15,0,-0.65,0,0.15,-0.15,0.45,0,0,0.2,
+        0,0.8,0,0,0.3,0.3,0.05,0,-0.1,0.6,0.05,0,0,0,0,0,0.65,0.35,0.1,-0.05,0,0,0,0.2
+          ]
+    */
+    var arr = [100,25,90,,10,40,5,-20,-10,55,90,10,70,100,-85,100,-5,-10,10,-10,55,35,,5,100,75,95,,100,35,5,-20,-10,55,90,60,90,100,-85,100,55,20,10,-15,35,,,20,,5,20,20,5,5,,,,,,-65,,,,,,,10,-80,,5,,25,100,10,20,,30,50,10,-5,-5,85,,,-100,,,,-10,70,10,-5,20,,-100,5,100,15,35,,55,20,,-15,-5,100,,,,20,-50,95,-70,-10,15,-5,,,,15,100,50,70,,100,20,,-15,-5,100,,,,20,-50,95,-70,-10,15,-5,,,,20,100,65,70,,20,35,,-25,,95,,,,,,5,40,10,10,-40,85,,-5,20,300,70,10,,5,10,,10,,45,,,,10,-15,,-65,,15,-15,45,,,20,,80,,,30,30,5,,-10,60,5,,,,,,65,35,10,-5,,,,20]
+    arr = reshape(arr.map(x=>x/100),24)
+
+    sounds = {}
+    sounds.lazer = toaudio([jsfxr(arr[3])]);
+    ///* // DEBUGONLY
+    sounds.boom = toaudio([jsfxr(arr[0])]);
+    sounds.boom2 = toaudio([jsfxr(arr[1])]);
+    sounds.bass = toaudio([jsfxr(arr[4])]);
+    sounds.rumble = toaudio([jsfxr(arr[5])]);
+    sounds.hit = toaudio([jsfxr(arr[6])]);
+    sounds.warmup = toaudio([jsfxr(arr[7])]);
+
+    sounds._nope = toaudio([jsfxr(arr[2])]);
+    sounds._gather = toaudio([jsfxr(arr[8])]);
+    
+    arr[3][2] = .6;
+    sounds.lazer2 = toaudio([jsfxr(arr[3])]);
+    //*/ // DEBUGONLY
+    range(30,1).map(i=> setTimeout(_=>qQ.style.opacity = 1-(i/30)+"",i*16));
+    setTimeout(_=>{qQ.style.display = "none";qQ.style.opacity="1"},1000);
+    cQ.style.opacity = "1"
+    
+}
+
+</script><script>
+
+/* ===== Inlined utils.js ===== */
+// utils.js -- a collection of short functions used throughout
+
+// Copyright (C) 2020, Nicholas Carlini <nicholas@carlini.com>.
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+
+var transpose = (mat) => mat[0].map((x,i) => mat.map(x => x[i]))
+
+var range = (N,a) => Array(N).fill().map((_,x)=>x+(a||0));
+
+var reshape = (A,m) => 
+    range(A.length/m).map(x=>A.slice(x*m,(x+1)*m));
+
+var urandom = _ => Math.random()*2 - 1;
+var urandom_vector = n => NewVector(urandom()*(n=n||1),urandom()*n,urandom()*n)
+
+
+function uncompress(x) {
+    return atob(x).split("").map(x=>x.charCodeAt(0));
+}
+
+var multiply, mat_vector_product;
+
+var cartesian_product_map = (a,b,f) =>
+    [].concat(...a.map(x=>b.map(y=>f(x,y))));
+
+var normal_to_plane = (a,b,c) =>
+    (a.subtract(b).cross(c.subtract(b)))._normalize();
+
+var NewVector = (a,b,c,d) => new Vector(a,b,c,d);
+var NewVectorFromList = (x) => NewVector(...x); // TODO space need this?
+
+var reduce_add = (lst) => lst.reduce((a,b)=>a.add(b));
+var reduce_mean = (lst) => reduce_add(lst).scalar_multiply(1/lst.length);
+
+// todo make this a function on vectors
+var angle_between = (a,b) => Math.atan2(a.subtract(b).x,
+                                        a.subtract(b).y)
+
+
+var push = (x,y) => (x.push(y), x);
+
+var clamp = (x,low,high) => Math.min(Math.max(low, x), high)
+var sum = (x) => x.reduce((a,b)=>a+b)
+
+var matrix_rotate_yz = (theta) => 
+    [1,0,0,0,
+     0,Math.cos(theta), -Math.sin(theta), 0,
+     0,Math.sin(theta), Math.cos(theta), 0,
+     0, 0, 0, 1];
+
+var matrix_rotate_xz = (theta) => 
+    [Math.cos(theta),0,-Math.sin(theta),0,
+     0, 1, 0, 0,
+     Math.sin(theta),0, Math.cos(theta), 0,
+     0, 0, 0, 1];
+
+var matrix_rotate_xy = (theta) => 
+    [Math.cos(theta), -Math.sin(theta), 0, 0,
+     Math.sin(theta), Math.cos(theta), 0, 0,
+     0, 0, 1, 0,
+     0, 0, 0, 1];
+
+
+var IDENTITY = matrix_rotate_xy(0);
+
+
+function look_at(forward, up) {
+    forward = forward._normalize()
+    var right = up.cross(forward)._normalize();
+    up = forward.cross(right);
+
+    return [right.x, forward.x, up.x, 0,
+            right.y, forward.y, up.y, 0,
+            right.z, forward.z, up.z, 0,
+            0, 0, 0, 1];
+                       
+}
+
+
+class Vector {
+    constructor(x, y, z, w) {
+        this.x = +x||0;
+        this.y = +y||0;
+        this.z = +z||0;
+        this.w = +w||0;
+    };
+
+    add(other) {
+        return NewVector(this.x+other.x,
+                         this.y+other.y,
+                         this.z+other.z)
+    }
+    
+    subtract(other) {
+        return this.add(other.negate())
+    }
+    
+    negate() {
+        return this.scalar_multiply(-1);
+    }
+    
+    scalar_multiply(c) {
+        return NewVector(this.x * c,
+                         this.y * c,
+                         this.z * c)
+    }
+
+    vector_multiply(other) {
+        return NewVector(this.x*other.x,
+                         this.y*other.y,
+                         this.z*other.z);
+    }
+
+    dot(other) {
+        return this.x*other.x+this.y*other.y+this.z*other.z;
+    }
+
+    _xyz() {
+        return [this.x,this.y,this.z]
+    }
+
+    _xyzw() {
+        return push(this._xyz(),this.w);
+    }
+
+    lerp(other, frac) {
+        return this.scalar_multiply(1-frac).add(other.scalar_multiply(frac));
+    }
+
+    moveto(other, distance) {
+        var f = other.subtract(this);
+        if (f.vector_length() > distance) f = f._normalize().scalar_multiply(distance)
+        return this.add(f);
+    }
+    
+    cross(other) {
+        return NewVector(this.y*other.z-this.z*other.y,
+                          this.z*other.x-this.x*other.z,
+                          this.x*other.y-this.y*other.x);
+    }
+
+    project_onto(other) {
+        return other.scalar_multiply(this.dot(other)/other.length_squared())
+    }
+    
+    
+    copy() {
+        return NewVectorFromList(this._xyzw());
+    }
+
+    length_squared() {
+        return this.dot(this)
+    }
+
+    vector_length() {
+        return this.length_squared()**.5;
+    }
+
+    distance_to(other) {
+        return this.subtract(other).vector_length();
+    }
+
+    _normalize() {
+        return this.scalar_multiply(1.0/(this.vector_length()+1e-30))
+    }
+}
+
+
+// TODO space write in terms of proj_uv
+function dist_ray_point(start, direction, point) {
+    return direction.cross(start.subtract(point)).vector_length()/direction.vector_length()
+}
+
+function ray_triangle_intersect(orig, direction, v0, v1, v2) {
+    var v0v1 = v1.subtract(v0);
+    var v0v2 = v2.subtract(v0);
+    var pvec = direction.cross(v0v2);
+
+    var det = 1/v0v1.dot(pvec);
+
+    // TODO SAFE?
+    //if (det > 1e5)
+    //    return 0;
+    
+    var tvec = orig.subtract(v0);
+    var u = tvec.dot(pvec) * det;
+    
+    if (u < 0 || u > 1)
+        return 0;
+
+    var qvec = tvec.cross(v0v1);
+    var v = direction.dot(qvec) * det;
+
+    if (v < 0 || u + v > 1)
+        return 0;
+
+    return v0v2.dot(qvec) * det;
+}
+
+function find_first_hit(position, direction, filter) {
+    var best = 1e9;
+    var bestIdx;
+    var bestSid=-1;
+    var bestObject;
+    objects.map(other => {
+        if ((!filter || filter(other)) && // It's the right kind of object
+            other.sprites
+           ) {
+
+            other.sprites.map((sprite, sid) => {
+                if (sprite.position.distance_to(position) < direction.vector_length()+sprite.size &&  // and it's in range
+                    dist_ray_point(position, direction, sprite.position) < sprite.size) { // and the ray says it's in range
+                    sprite.b_positions.map((tri,idx) => {
+                        var distance;
+                        if (sprite.size < 3 && other != me && false) {
+                            distance = sprite.position.subtract(position).project_onto(direction).vector_length()/direction.vector_length();
+                        } else {
+                            tri = tri.map(x=>mat_vector_product(sprite.rotation, x).add(sprite.position))
+                            distance = ray_triangle_intersect(position, direction, ...tri);
+                        }
+                        if (distance < best && distance > 0) {
+                            best = distance;
+                            bestIdx = idx;
+                            bestSid = sid;
+                            bestObject = other;
+                        }
+                    })
+                }
+            })
+        }
+    });
+    return [bestObject, bestSid, bestIdx, best]
+}
+    
+
+var ZERO = new Vector(0, 0, 0); // TODO keep it like this to stop the optimizer from inlining the class definition and making things 10x slower
+var X_DIR = NewVector(1, 0, 0);
+var Y_DIR = NewVector(0, 1, 0);
+var Z_DIR = NewVector(0, 0, 1);
+
+var last_sent_rotation;
+
+class Sprite {
+    constructor(pos_and_normal, position, rotation, colors, texture) {
+        this.count = (this.a_positions = new Float32Array(pos_and_normal[0])).length/3;
+        this.a_velocity = new Float32Array(pos_and_normal[0].length);
+        this.a_settings = new Float32Array(pos_and_normal[0].length);
+        if (this.b_positions = pos_and_normal[2]) { // YES THIS IS AN ASSIGNMENT
+            this.size = Math.max(...this.b_positions.flat(1).map(x=>x.vector_length()));
+        }
+        this.a_normals = new Float32Array(pos_and_normal[1]);
+        this.orig_pos = this.position = position;
+        this.buffers = range(5).map(x=>gl.createBuffer())
+        this.orig_rot = this.rotation = rotation||IDENTITY;
+
+        this.a_colors = new Float32Array(Array(this.count).fill(colors || [1,1,1]).flat());
+
+        this._texture = texture || 1;
+
+        this.type = gl.TRIANGLES;
+        this._first = 0;
+        
+        this.rebuffer();
+    }
+
+    rebuffer() {
+        [this.a_positions, this.a_normals, this.a_velocity, this.a_settings, this.a_colors].map((which, i) => {
+            gl.bindBuffer(gl.ARRAY_BUFFER, this.buffers[i]);
+            gl.bufferData(gl.ARRAY_BUFFER, which, gl.DYNAMIC_DRAW);
+        });
+    }
+
+    render() {
+        if (this.count-this._first < 1) return;
+        gl.uniform4fv(locations.u_world_position, this.position.negate()._xyzw());
+        if (this.rotation != last_sent_rotation) {
+            last_sent_rotation = this.rotation;
+            gl.uniformMatrix4fv(locations.u_world_rotation, false, this.rotation);
+        }
+
+        [locations.a_position,
+         locations.a_normal,
+         locations.a_velocity,
+         locations.a_settings,
+         locations.a_color].map((location,i) => {
+             gl.enableVertexAttribArray(location);
+             gl.bindBuffer(gl.ARRAY_BUFFER, this.buffers[i]);
+             gl.vertexAttribPointer(
+                 location, 3, gl.FLOAT, false, 0, 0);
+         });
+        gl.uniform1i(locations.u_texture_mux, this._texture);
+
+        gl.drawArrays(this.type, this._first, this.count-this._first);
+    }
+}
+
+var setup_utils = () => {
+    var mat_product_symbolic = B =>
+        `(a,b)=>[${reshape(range(16),4).map(c=>B[0].map((_,i)=>B.reduce((s,d,j)=>`${s}+b[${d[i]}]*a[${c[j]}]`,0))).flat()}]`;
+
+    
+    multiply = eval/*HACK*/(mat_product_symbolic(reshape(range(16),4))
+                           )    
+    var mat_vector_product_q = eval/*HACK*/(mat_product_symbolic(reshape(range(4),1))
+                                       )
+
+    mat_vector_product = (m,x) => NewVectorFromList(mat_vector_product_q(m,x._xyzw()));
+};
+
+
+</script><script>
+
+/* ===== Inlined objects.js ===== */
+// objects.js -- create 3d objects loading from .obj files
+
+// Copyright (C) 2019, Nicholas Carlini <nicholas@carlini.com>.
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+function load_compressed(scale2, offset2, rotation, data, idxs, offset, scale, symetries) {
+    //idxs = idxs.toString(2).split("").reverse()
+    var the_face = [];
+    var history = [];
+    var faces = [];
+    var prev=0;
+    //console.log("\n\n\nNEW", data);
+    for (var i = 0; i < data.length;) {
+        if ((data[i]|0)<128) {
+            //console.log("OK", data[i], data[i+1], data[i+2])
+            history.unshift(mat_vector_product(rotation, NewVectorFromList(data.slice(i,i+=3))).scalar_multiply(scale).vector_multiply(scale2).add(NewVectorFromList(offset).add(offset2).vector_multiply(scale2)))
+            //console.log("Real", history[0])
+
+        } else {
+            history.unshift(history[(data[i++]|0)-128])
+        }
+
+        the_face[prev=(prev+(idxs&1)+1)%3] = history[0];
+        idxs = Math.floor(idxs/2);
+        if (history.length > 2) {
+            //console.log("Adding", JSON.stringify(the_face))
+            faces.unshift(the_face.map(x=>x));
+            if (i%2 == 1) {
+                faces[0].reverse();
+            }
+        }
+    }
+    // TODO merge symetries_axis and symetries_offset
+    symetries.map(elt => {
+        faces = [...faces, ...faces.map(f=> f.map(x=>x.subtract(history[elt[0]]).vector_multiply(NewVectorFromList(elt[1])).add(history[elt[0]])).reverse())]
+    })
+    return faces;
+}
+
+function load2(str, subdivisions, N, offset, rotation, randomize) {
+    var outsf = [];
+    if (!(N instanceof Vector)) N = NewVector(N,N,N);
+
+    JSON.parse(JSON.stringify(str)).map(it => {
+        // make a ternary op
+        if (it.length == 2) {
+            outsf.push(outsf[it[0]].map(f=> f.map(x=>x.vector_multiply(NewVectorFromList(it[1]))).reverse()));
+        } else {
+            outsf.push(load_compressed(N, offset||ZERO, rotation||IDENTITY, ...it));
+        }
+    })
+
+    outsf = outsf.flat(1).map(x=>x.map(randomize || (_=>_)));
+    var outsn = outsf.map(x=> {
+        var q=normal_to_plane(...x).negate()._xyz();
+        if (sum(q.map(Math.abs)) < 1e-5) sdf; // DEBUGONLY
+        return [q,q,q];
+    })
+    return [outsf.flat().map(x=>x._xyz()).flat(), outsn.flat(2), outsf]
+}
+
+var all_ships = []
+
+function setup_ships() {
+                /*0      1     2   3      4       5     6       7          8        9    10       11       12, 13*/
+    var pieces = [body, body, wing0, , wing2, wing2, big_bad1, big_bad2, engine, body3, wing5, gunmount, nicecube, nicecube, nicecube]
+    var type   = [1,    1,    1,     1,     1,      1,    1,        1,        2,      1,     1,     3,        1, 1, 3];
+
+    // TYPE: 1: BODY, 2: ENGINE, 3: GUN
+
+    // [INDEX, SIZE, POSITION, ROTATION, OFFSET, ROT_OFFSET]
+
+    
+    var ships = [
+        [ // 
+            [0, 1, [0, 0, 0],  IDENTITY],
+            [10, .1, [0, 10, 0], matrix_rotate_yz(-Math.PI/4), [0,-1.5,0]],
+            [8, .03, [5, 0, 40], IDENTITY, [-1,-.2,-.3]],
+            [8, .03, [5, 0, 40], IDENTITY,  [1,-.2,-.3]],
+        ],
+        [ // high damage one
+            [0, 1, [0, 0, 0],  IDENTITY],
+            [4, 1, [0, 0, 0], IDENTITY],
+            [8, .03, [5, 0, 40], IDENTITY],
+        ],
+        [ // initial one
+            [9, .1, [0, 0, 0],  IDENTITY],
+            [10, .1, [0, 0, 0], IDENTITY],
+            [10, .08, [20, 6, 0], matrix_rotate_xy(.8)],
+            [8, .06, [0, 0, 0], IDENTITY, [0, -2, 0]],
+        ],
+        [ // cube thing
+            [12, .1, [0, 0, 0],  IDENTITY,  [0, 0+4.5, 0]],
+            [12, .08, [0, 0, 0],  IDENTITY, [0, -1.5+4.5, 0]],
+            [12, .1, [0, 0, 0],  IDENTITY,  [0, -3+4.5, 0]],
+            [12, .08, [0, 0, 0],  IDENTITY, [0, -4.5+4.5, 0]],
+            [12, .1, [0, 0, 0],  IDENTITY,  [0, -6+4.5, 0]],
+            [12, .08, [0, 0, 0],  IDENTITY, [1.5, -6+4.5, 0]],
+            [12, .08, [0, 0, 0],  IDENTITY, [-1.5, -6+4.5, 0]],
+            [12, .1, [0, 0, 0],  IDENTITY, [3, -6+4.5, 0]],
+            [12, .1, [0, 0, 0],  IDENTITY, [-3, -6+4.5, 0]],
+            [8, .08, [0, 0, 0],  IDENTITY, [3, -7+4.5, 0]],
+            [8, .08, [0, 0, 0],  IDENTITY, [-3, -7+4.5, 0]],
+            [8, .1, [0, 0, 0],  IDENTITY,  [0, -7+4.5, 0]],
+        ],
+        [
+            [0, 3, [0, 0, 0],  IDENTITY],
+            [2, 3, [0, 0, 0], IDENTITY, [0,0,0]],
+            [8, .15, [0, 0, 0], IDENTITY, [0, -3, 0]],
+        ],
+        [ // big bad
+            [7, 1, [0, 0, 0], IDENTITY],
+            [11, .2, [0, 0, 0], IDENTITY, [3.5, 8, 8], matrix_rotate_xz(Math.PI+.3)],
+            [11, .2, [0, 0, 0], IDENTITY, [3.5, 8, -8], matrix_rotate_xz(Math.PI-.3)],
+            [6, 1, [-10, 0, 0], IDENTITY],
+            [8, 1, [0, 0, 0], IDENTITY, [0, -30, 10]],
+            [8, 1, [0, 0, 0], IDENTITY, [0, -30, -10]],
+        ],
+        // outpost 2
+        range(3).map(j=> 
+                     range(32).map(i=> {
+                         var angle = multiply((i==8 || i==24) ? IDENTITY : matrix_rotate_xz(j*Math.PI/3),
+                                              matrix_rotate_xy(-i/16*Math.PI))
+                         return [14, 1-(i%2)/3, [0, 0, 0],  IDENTITY, mat_vector_product(angle, X_DIR.scalar_multiply(80))._xyz(), angle];
+                     })
+                    ).flat(1),
+            
+    ];
+
+    function make(index, size, position, rotation, finalpos, finalrot) {
+        // todo space negative never used
+        return [...(index < 0 ? ships[-index].map(x=>make(...x)) : load2(pieces[index], 0, size, NewVectorFromList(position), rotation)),
+                NewVectorFromList(finalpos||[0,0,0]),
+                finalrot,
+                type[index]];
+    }
+    
+    all_ships = ships.map(pieces_list => pieces_list.map(x => make(...x)))
+}
+
+
+</script><script>
+
+/* ===== Inlined graphics.js ===== */
+// graphics.js -- the core rendering engine
+
+// Copyright (C) 2020, Nicholas Carlini <nicholas@carlini.com>.
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+
+function make_proj_matrix() {
+    //var f = Math.tan(Math.PI/2 - fov/2);
+
+    // Only allow one field of view to save space
+    return [
+        [1, 0, 0, camera_position.x,
+         0, 1, 0, camera_position.y,
+         0, 0, 1, camera_position.z,
+         0, 0, 0, 1],
+        camera_rotation,
+        [aspect/1.0734, 0, 0, 0,
+         0, 0, 1, 0,
+         0, 1/1.0734, 0, 0,
+         0, 0, -1, 1]
+    ].reduce(multiply)
+}
+
+var aspect;
+function Camera() {
+    aspect = cQ.width/cQ.height;
+
+    return _ => {
+        //gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+        gl.enable(gl.DEPTH_TEST);
+        //gl.enable(gl.CULL_FACE);
+        //gl.cullFace(gl.FRONT);
+
+        gl.viewport(0, 0, cQ.width, cQ.height)
+
+        gl.uniform4fv(locations.u_sun_position, star.position._xyzw());
+
+        gl.uniform1f(locations.u_time, local_time);
+        gl.uniform4fv(locations.u_camera_position, camera_position._xyzw());
+        gl.uniformMatrix4fv(locations.u_camera_matrix, true,
+                            proj_mat = make_proj_matrix());
+
+        objects.map(obj=> obj.render());
+
+        gl.enable(gl.BLEND);
+        gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+
+        gl.depthMask(false);
+        
+        var base = NewVectorFromList(camera_position._xyz().map(x=>(x>>5)<<5));
+        if (screen != 1) {
+        range(8*8*8).map(z => {
+            var v = NewVector((z&7)-3,((z>>=3)&7)-3,(z>>3)-3);
+            if (v.vector_length() < 3) {
+                glitter.position = base.add(v.scalar_multiply(32));
+                glitter.render();
+            }
+        });
+        }
+
+        gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
+
+        particles.map(obj => obj.render());
+
+        gl.depthMask(true);
+        gl.disable(gl.DEPTH_TEST);
+        
+        gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+
+        if (screen < 2 && local_time > 100) {
+            hud.map(x=>x.render());
+        }
+        
+        
+        gl.disable(gl.BLEND);
+    }
+}
+
+
+var PARTS = 0; // DEBUGONLY
+
+class ParticleSystem extends Sprite {
+    constructor(num_particles, maxage, settings, color, dont_use_random) {
+        super([range((num_particles|=0)*3).map(x=>1e8),
+                                    range(num_particles).map(x=>color).flat(1)], ZERO, IDENTITY,
+              settings, 2);
+        this.velocitys = range(num_particles*3);
+        this.settings = settings;
+        this.ages = Array(num_particles).fill(0)
+        //console.log(this.a_colors);
+        //range(num_particles).map(x=>this.a_colors[i*3+2] = Math.random())
+
+        this.type = gl.POINTS;
+        this.maxage = maxage;
+        this.fakedead = undefined;
+        this.max_spawn = 1e6;
+        // todo space check argument assigned not through constructor
+        this.use_random = !dont_use_random;
+    }
+
+    particle_start() {
+        var u;
+        do {
+            u = urandom_vector()._normalize();
+        } while (Math.abs(u.dot(this.position.subtract(camera_position)._normalize())) > .1);
+        
+        return [u.scalar_multiply(95+urandom()*5),
+                u.scalar_multiply(.2 + urandom()*.1)]
+    }
+    
+    update(dt, other_max) {
+        var did = 0;
+
+        var max = Math.min(other_max||1e9,this.max_spawn)*dt/16.7;
+        
+        for (var i = 0; i < this.ages.length; i++) {
+            if ((this.ages[i] -= dt) < 0 && did < max && !this.fakedead) {
+                did++;
+                var [tmp, tmp2] = this.particle_start(dt, max);
+                this.ages[i] = this.maxage*1000*(this.use_random||Math.random());
+                this.a_colors[i*3] = this.settings[0];
+                this.a_colors[i*3+1] = this.settings[1];
+                this.a_settings[i*3] = local_time;
+                this.a_settings[i*3+1] = local_time + this.ages[i];
+                this.a_positions.set(tmp._xyz(), i*3)
+                this.a_velocity.set(tmp2._xyz(), i*3)
+            }
+        }
+
+        if (did) {
+            this.rebuffer()
+        }
+    }
+}
+
+function setup_graphics() {
+var fragmentShaderSource = `#version 300 es
+precision mediump float;
+
+in vec4 v_normal,world_position,v_color,v_project_onto_camera,v_position, v_sun_offset;
+in float v_off_screen;
+
+uniform int u_texture_mux;
+uniform vec4 u_world_position,u_shift_color,u_camera_position;
+uniform float u_alpha;
+
+out vec4 out_color;
+
+void main() {
+  vec3 v_normal_ = normalize(v_normal.xyz);
+  float light_add;
+
+  vec2 uv = v_project_onto_camera.xy/max(v_project_onto_camera.w,1.);
+  vec2 uvd = uv*(length(uv));
+  vec2 pos = v_sun_offset.xy/v_sun_offset.w;
+
+  if (u_texture_mux != 2) {
+    float flare_amt = v_sun_offset.z < 0. ? 4.*max(2.-pow(max(abs(pos.x),abs(pos.y))-.2,5.),0.) : 0.;
+  
+    float amt[8] = float[](1.2, 5., .4, 2.4, .1, 5.5, -.4, 1.6);
+    
+    for (int i = 0; i < 8; i += 2) {
+      vec2 uvx = mix(uv,uvd,-.5);
+      out_color.r += max(0.01-pow(length(uvx+(amt[i]*(1. + .0*amt[i+1]))*pos),amt[i+1]),.0)*(7.-amt[i+1])*flare_amt;
+      out_color.g += max(0.01-pow(length(uvx+(amt[i]*(1. + .05*amt[i+1]))*pos),amt[i+1]),.0)*(7.-amt[i+1])*flare_amt;
+      out_color.b += max(0.01-pow(length(uvx+(amt[i]*(1. + .1*amt[i+1]))*pos),amt[i+1]),.0)*(7.-amt[i+1])*flare_amt;
+    }
+  }
+
+  vec2 from_center = 2.*gl_PointCoord.xy-vec2(1,1);
+  if (u_texture_mux == 1) {
+    light_add += pow(clamp(dot(vec3(0, 0, -1), v_normal_),0.,1.),3.);
+    light_add += pow(clamp(dot(vec3(1, 0, .5), v_normal_),0.,1.),3.);
+    light_add += pow(clamp(dot(vec3(-.5, -.86, .5), v_normal_),0.,1.),3.);
+    light_add += pow(clamp(dot(vec3(-.5, .86, .5), v_normal_),0.,1.),3.);
+
+    light_add /= 2.;
+    light_add += .2 + u_alpha;
+    out_color += (v_color) * vec4(light_add, light_add, light_add, 1);
+  } else if (u_texture_mux == 2) {
+    /* particles system */
+    out_color.rgb = v_normal.rgb;
+    out_color.w = smoothstep(1.,0.,length(from_center)) * v_color.x;
+  } else if (u_texture_mux == 5) {
+    /* mouse cursor */
+    from_center = abs(from_center);
+    out_color = vec4(1,1,1, (max(from_center.x,from_center.y) < .875 || min(from_center.x,from_center.y) < .5) && max(from_center.x,from_center.y) > .125  ? 0 : 1)
+;
+  } else if (u_texture_mux == 6 || u_texture_mux == 9) {
+    /* aim dot */
+    if (v_off_screen > 0.) {
+      float a = -atan(uv.y, uv.x);
+      vec2 x_dir = vec2(cos(a),sin(a));
+      vec2 y_dir = vec2(-sin(a),cos(a));
+      out_color.w = dot(from_center,x_dir) > -1. && dot(from_center,x_dir)+abs(dot(from_center,y_dir))*3. < -.3 ? 1. : 0.;
+    } else {
+      out_color.w = min(abs(from_center.x),abs(from_center.y)) < .25 ? 1. : 0.;
+    }
+    out_color.xyz = u_texture_mux == 6 ? vec3(1,.3,0) : vec3(.2,.2,1);
+  } else if (u_texture_mux == 7) {
+    /* damage sprite */
+    out_color.xyzw = v_color.rggb; /* Can do xyzw, rgbb if I want */
+  } else if (u_texture_mux == 15) {
+    /* Backdrop */
+
+     vec3 p = normalize(normalize((u_camera_position-world_position).xyz)-.5);
+     float pa,a=pa= 0.;
+     for (int i=0; i<15; i += 1) { 
+       p=abs(p)/dot(p,p)-.49;
+       a+=abs(length(p)-pa);
+       pa=length(p);
+     }
+     a *= a*a;
+     vec3 s = pow(vec3(a/3e5, a/2e5, a/1e5), vec3(.9));
+     out_color.rgb += .5 * clamp(s,0.,2.);
+     out_color.w = 1.;
+  }
+  
+}
+`;
+
+    var program = gl.createProgram();
+    var vertexShaderSource = `#version 300 es
+precision mediump float;
+precision mediump int; /* TODO space only necessary if I have utexturemux*/
+
+in vec4 a_position,a_normal,a_color,a_velocity,a_settings;
+uniform int u_texture_mux;
+uniform float u_time;
+
+out vec4 v_normal,world_position,v_color,v_position,v_project_onto_camera,v_sun_offset;
+out float v_off_screen;
+
+uniform vec4 u_world_position,u_camera_position,u_sun_position;
+uniform mat4 u_world_rotation,u_camera_matrix;
+
+
+/* settings. x: start, y: end */
+void main() {
+  vec4 my_pos = a_position + vec4((u_time-a_settings.x)/16.*a_velocity.xyz,0);
+  world_position = (my_pos) * u_world_rotation - u_world_position;
+ 
+  v_normal = a_normal * u_world_rotation;
+  v_color = a_color;
+
+  mat4 c_inv = inverse(u_camera_matrix);
+
+  gl_Position = v_project_onto_camera = c_inv * world_position;
+
+  if (u_texture_mux == 2) { /* particle system */
+     /* x sets the size and transparency, y just sets the size */
+     v_color.x *= smoothstep(1., 0., (u_time-a_settings.x)/(a_settings.y-a_settings.x));
+     gl_PointSize = (2000./gl_Position.w) * (2.+v_color.x) * a_color.y / float(${1<<(GRAPHICS>>1)-1});
+     v_normal = a_normal;
+  } else if (u_texture_mux == 5 || u_texture_mux == 6 || u_texture_mux == 9) { /* hud */
+     gl_PointSize = u_texture_mux == 5 ? 20. : 8.;
+
+     vec2 screen_pos = gl_Position.xy/max(gl_Position.w,1.);
+     float bigger = max(abs(screen_pos.x), abs(screen_pos.y));
+     if (bigger > 1.) {
+         screen_pos /= bigger;
+         gl_PointSize *= 6.;
+         v_off_screen = 1.;
+     } else if (u_texture_mux == 9) {
+         gl_PointSize = 0.;
+     }
+
+     gl_Position = vec4(clamp(screen_pos, -.95, .95), 0, 1);
+  }
+
+  v_position = a_position;
+  v_sun_offset = c_inv * (u_camera_position - u_sun_position);
+
+}
+`;
+
+    [[gl.VERTEX_SHADER, vertexShaderSource],
+     [gl.FRAGMENT_SHADER, fragmentShaderSource]].map(type_and_code => {
+         var shader = gl.createShader(type_and_code[0]);
+         gl.shaderSource(shader, type_and_code[1]); 
+         gl.compileShader(shader);
+         gl.attachShader(program, shader);
+
+         // Just assume success on the compiled version
+         var success = gl.getShaderParameter(shader, gl.COMPILE_STATUS); // DEBUGONLY
+         if (!success) { // DEBUGONLY
+             console.log(type_and_code[1].split("\n").map((x,i)=>(i+1)+":" + x).join("\n")); // DEBUGONLY
+             console.log(gl.getShaderInfoLog(shader)); // DEBUGONLY
+             gl.deleteShader(shader); // DEBUGONLY
+             sdf; // DEBUGONLY
+         } // DEBUGONLY
+     });
+    
+    gl.linkProgram(program);
+
+    // Again assume success on the compiled version
+    var success = gl.getProgramParameter(program, gl.LINK_STATUS); // DEBUGONLY
+    if (success) { // DEBUGONLY
+        // TODO SPACE is it shorter to just inline all the assignments?
+        locations = {};
+        var prev_in = true;
+        (fragmentShaderSource+vertexShaderSource).match(/[a-zA-Z_]+/g).map(tok => {
+            if (tok == "in") prev_in = true;
+            if (tok == "uniform") prev_in = false;
+            locations[tok] = locations[tok] || (prev_in ? gl.getAttribLocation(program, tok) :gl.getUniformLocation(program, tok))
+        })
+    } else { // DEBUGONLY
+        console.log(gl.getProgramInfoLog(program)); // DEBUGONLY
+        gl.deleteProgram(program); // DEBUGONLY
+    } // DEBUGONLY
+
+    gl.useProgram(program);
+
+}
+
+</script><script>
+
+/* ===== Inlined game.js ===== */
+// game.js -- the logic for the game objects
+
+// Copyright (C) 2020, Nicholas Carlini <nicholas@carlini.com>.
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+
+function can_hit(is_mine) {
+    return x => ((x == dome) || (screen == 0 && (is_mine ? x instanceof Enemy : !(x instanceof Enemy))));
+}
+
+function lazerspeed(damage) {
+    return damage == 5 ? 10 : 2/(damage**2);
+}
+
+class Lazer extends ParticleSystem {
+    constructor(position, direction, rot, is_mine, damage) {
+        var num_particles = clamp(0|(100 - 30*damage + 200*(damage==5))*(1-GRAPHICS/9),1,1e9);
+        super(40*num_particles, .5, [1, damage/10+.1, 1], is_mine ? [.3, 1, .5] : [1, .2, .1]);
+        this.damage = damage;
+        this.pos = this.tpos = position;
+
+        set_timeout(_=>this.dead = true, 1500*damage);
+
+        this.is_mine = is_mine;
+        this.rotation = IDENTITY;
+        this.max_spawn = num_particles;
+        this.use_random = 1;
+        play(sounds.lazer, .2)
+
+        // TODO duplicated here and in the lazer creation
+        this.velocity = direction._normalize().scalar_multiply(lazerspeed(this.damage));
+        //console.log(this.velocity.vector_length());
+    }
+
+    particle_start(dt) {
+        this.tpos = this.tpos.add(this.velocity.scalar_multiply(dt/this.max_spawn));
+        return [this.tpos, ZERO];
+    }
+
+    update(dt) {
+        this.tpos = this.pos
+
+        if (this.fakedead) return;
+        var [bestObject, bestSid, bestIdx, best] = find_first_hit(this.pos,
+                                                                  this.velocity.scalar_multiply(dt),
+                                                                  can_hit(this.is_mine))
+
+        super.update(dt, best*this.max_spawn);
+        if (!bestObject || best > 1) {
+            this.pos = this.pos.add(this.velocity.scalar_multiply(dt));
+            return;
+        }
+        
+        var where = this.pos.add(this.velocity.scalar_multiply(dt*best));
+        var the_sprite = bestObject.sprites[bestSid];
+        var normal_dir = mat_vector_product(the_sprite.rotation,
+                                            NewVectorFromList(the_sprite.a_normals.slice(bestIdx*9, bestIdx*9+3)))
+        
+        
+        if (this.is_mine) play(sounds.hit)
+        if (bestObject != me) {
+
+            //bestObject.annoyed = last_now;
+            // TODO SPACE this is duplicated twice
+            var hit_tri = the_sprite.b_positions[bestIdx];
+            var [h1, h2, h3] = hit_tri.map(x=> mat_vector_product(the_sprite.rotation,
+                                                                  x).add(the_sprite.position))
+
+            // TODO space this can all go away
+            // Gram-Schmidt orthoganlize
+            var edge1 = h2.subtract(h1)._normalize();
+            var edge2 = h3.subtract(h1)._normalize();
+            edge2 = edge2.subtract(edge2.project_onto(edge1));
+
+            // Compute hit coordinates in this space
+            var alpha = where.subtract(h1).project_onto(edge1).vector_length();
+            var beta =  where.subtract(h1).project_onto(edge2).vector_length();
+
+            var get_new_pos = () => {
+                var [h1, h2, h3] = hit_tri.map(x=> mat_vector_product(the_sprite.rotation,
+                                                                      x).add(the_sprite.position))
+                
+                // Gram-Schmidt orthoganlize
+                var edge1 = h2.subtract(h1)._normalize();
+                var edge2 = h3.subtract(h1)._normalize();
+                edge2 = edge2.subtract(edge2.project_onto(edge1));
+                return edge1.scalar_multiply(alpha).add(edge2.scalar_multiply(beta)).add(h1);
+            }
+            
+            
+            this.fakedead = true;
+            particles.push(new Hit(ZERO, 10*this.damage*(this.is_mine ? this.damage : 1), 1.5 + this.damage/2, .5 + (bestObject == dome),
+                                   normal_dir.scalar_multiply(this.damage/3+1), 1, get_new_pos));
+            if (the_sprite._kind == 1) {
+                // if you hit the main body, it takes health from the root
+                the_sprite = bestObject.sprites[bestSid = 0];
+            }
+            if ((the_sprite.health -= this.damage**2/10) < 0) {
+                if (bestSid == 0 && bestObject != dome) {
+                    bestSid = range(bestObject.sprites.length);
+                    bestObject.dead = true;
+                } else {
+                    bestSid = [bestSid]
+                }
+                destroy(bestObject, bestSid)
+            }
+        } else {
+            particles.push(new Hit(where, 20*this.damage/3, 1, .5, normal_dir));
+            if (bestObject == me) {
+                play(sounds.boom2)
+                damage2 += this.damage**.5/3 * (1+clamp(local_time/600000,0,.5));
+                settings._health *= .99;
+            }
+            this.fakedead = true;
+        }
+        this.pos = this.pos.add(this.velocity.scalar_multiply(dt));
+    }
+}
+
+
+class Spinner {
+    constructor(sprite, velocity, gspeed) {
+        this.sprite = sprite;
+        this.gspeed = gspeed
+        this.velocity = velocity;
+        this.spins = urandom_vector(1);
+        this.position = ZERO;
+    }
+    update(dt) {
+        var speed = this.gspeed * (1+this.velocity.vector_length()) * .002  * dt;
+        this.position = this.sprite.position = this.sprite.position.add(this.velocity.scalar_multiply(dt));
+        this.sprite.rotation = multiply(this.sprite.rotation,
+                                   [matrix_rotate_xy(this.spins.x*speed),
+                                    matrix_rotate_yz(this.spins.y*speed),
+                                    matrix_rotate_xz(this.spins.z*speed)].reduce(multiply));
+    }
+    render() {
+        this.sprite.render();
+    }
+}
+
+function fade_black(off,delay) {
+    range(30).map(i=>
+                  setTimeout(_=> global_screen_color = [0, 0, i/10], off+i*delay)
+                 )
+}
+
+function destroy(bestObject, bestSid, is_me) {
+    if (is_me) {
+        screen = 2;
+        cW.style.display = "none"
+        fade_black(6000, 30)
+        setTimeout(load_screen, 7000)
+        range(30).map(i=> setTimeout(_ => cZ.style.right=-(30-i)+"vw", 16*i+7000))
+        add_energy(energy = 0)
+        damage2 = 2
+    }
+
+    bestSid.reverse().map(sid => {
+        var sprite = bestObject.sprites.splice(sid, 1)[0];
+
+        if (bestObject != me && bestObject != dome && sprite.size*urandom() > 1 || sid == 0) {
+            setTimeout(_=>objects.push(new EnergyObj(sprite.position.add(urandom_vector(20)))),2000*urandom())
+        }
+
+        var velocity = urandom_vector(.01).add(bestObject.velocity.scalar_multiply(!is_me));
+        var spinner = new Spinner(sprite, velocity, 4/sprite.size);
+        //sprite.update = do_spin(sprite, velocity, 4/sprite.size)
+        //console/**/.log("Killing", sprite, sprite.update)
+        setTimeout(x=> spinner.dead = true, 60000);
+        objects.push(spinner);
+
+        sprite.b_positions.map((tri,I)=> {
+            var t;
+            set_timeout(_=>{
+                // todo make the base dying a bigger boom
+                var r = urandom_vector();
+                r=r.vector_multiply(r)._xyz()
+                tri = tri.map((x,i)=>mat_vector_product(sprite.rotation, x).scalar_multiply(r[i]/sum(r)));
+                var mid = reduce_add(tri).add(sprite.position)
+                if (urandom() < -.95) {play(sounds.rumble, is_me ? 1 : .3);}
+                if (!is_me || urandom() < -.8) {
+                    if (bestObject == dome && urandom() < 0) return;
+                    if (is_me || urandom() < -.95) {play(sounds.boom2, is_me ? 1 : .3);}
+                    particles.push(new Hit(mid, 3, 3+urandom(), 1,
+                                           NewVectorFromList(sprite.a_normals.slice(I*3,I*3+3)),
+                                           1, undefined, urandom()<0 ? [1, .4, 0] : [.2, .2, .2]));
+                }
+            }, Math.random()*2000)
+        })
+    })
+    bestObject.dead = bestObject.sprites.length == 0;
+
+}
+
+function DamageEffect() {
+    var sprite = new Sprite(load2(cube, 0, 10), ZERO, 0, [.1, 0, 0], 7)
+    sprite.update = _ => {
+        sprite.position = camera_position;
+        sprite.a_colors = new Float32Array(Array(48*3).fill(global_screen_color).flat());
+        sprite.rebuffer();
+    }
+    return sprite;
+}
+
+const State = { // DEBUGONLY
+    RUN: 1, // DEBUGONLY
+    CHARGE: 2, // DEBUGONLY
+    CIRCLE: 3, // DEBUGONLY
+    SIEGE: 4, // DEBUGONLY
+}; // DEBUGONLY
+
+class Ship {
+    constructor(spriteid, position, rotation, colors) {
+        this.position = position;
+        this.rotation = IDENTITY;
+        this._parent = this;
+        this.sprites = spriteid.map(x=>{
+            var sprite = new Sprite(x,
+                                    x[3]||ZERO,
+                                    multiply(x[4]||IDENTITY, rotation), colors)
+            sprite._maketrace = _=> {
+            if (x[5] == 2) {
+                particles.push(new Tracer(sprite, .3, 5,
+                                          mat_vector_product(x[4]||IDENTITY,
+                                                             NewVector(0,0,sprite.size/1.2)),
+                                          [1,.8,.3], sprite.size/2, sprite.size));
+            }};
+            if (this instanceof Enemy) {
+                sprite._maketrace();
+            }
+
+            sprite._kind = x[5];
+            sprite._parent = this;
+            sprite.health = sprite.size/(spriteid == all_ships[4] ? 20 : 5);
+            return sprite;
+        })
+        this.velocity = ZERO;
+    }
+
+render() {
+        this.sprites.map(x=> x.position = this.position.add(mat_vector_product(this.rotation, x.orig_pos)));
+        this.sprites.map(x=> x.rotation = multiply(multiply(this.rotation, x.orig_rot), matrix_rotate_yz(Math.PI/2)));
+        this.sprites.map(x=> x.render());
+    }
+}
+
+class Enemy extends Ship {
+    constructor(sprite, mass, speed, damage, position) {
+        super(all_ships[sprite], position, IDENTITY)
+        this.position=position;
+        this.state = State.CHARGE;
+        this.rotation = IDENTITY;
+        this.shoot_lr = 0;
+        this.goal = null;
+        this.last_shoot = 3000*Math.random();
+        this.mass = mass;
+        this.speed = speed;
+        this.engines = 0;
+        this.damage = damage;
+        this.my_offset = urandom_vector(this.mass*20);
+        this.annoyed = -1e6;
+        this.is_small = mass < 20;
+        this._part_idx = 1e6;
+    }
+
+    update(dt) {
+        if (this.dead) return; // in case I'm killed before this turn.
+
+        if (last_now - this.annoyed > 20000) {
+            this.state = State.SIEGE;
+        } else if (this.state == State.SIEGE) {
+            this.state = State.CHARGE;
+        }
+        var speed = this.speed;
+
+        if (!this.is_small && urandom() > .999) {
+            objects.push(new Enemy(...stats[0|(urandom()>0)], this.position));
+        }
+        
+        if (this.state == State.CHARGE) {
+            this.goal = me;
+            if (this.position.distance_to(this.goal.position) < this.mass*10) {
+                if (me == this.goal) {
+                    this.my_offset = urandom_vector(this.mass*20);
+                    if (this.is_small)
+                        this.state = State.RUN;
+                    setTimeout(_=> this.state = State.CHARGE, 10000);
+                } else {
+                    this.goal = me;
+                }
+            }
+
+        } else if (this.state == State.RUN) {
+            this.goal = {position: me.position.add(this.my_offset)}
+            speed += (velocity.vector_length()-speed)/6;
+        } else if (this.state == State.SIEGE) {
+            if (urandom() > .995) this.my_offset = urandom_vector(this.mass*50+150);
+            this.goal = {position: dome.position.add(this.my_offset)};
+            if (urandom() > .999) this.state = State.CHARGE;
+        }
+
+        if ((this.last_shoot-=dt) <= 0) {
+            this.last_shoot = 1000;
+
+            var idx = this.sprites.length > 2 ? 1+((this.shoot_lr++)%2) : 0;
+            var start_pos = this.sprites[idx].position;
+            var lazer_direction;
+            var predicted_location = me.position;
+            var vel = lazerspeed(this.damage)*1000;
+            range(10).map(x=> {
+                var time_to_hit = predicted_location.distance_to(start_pos)/vel;
+                predicted_location = me.position.add(me.velocity.scalar_multiply(time_to_hit*1000))
+            });
+
+            if (this.state == State.SIEGE) {
+                if (this._part_idx >= dome.sprites.length) {
+                    this._part_idx = 0|(Math.random()*dome.sprites.length);
+                } else {
+                    predicted_location = dome.sprites[this._part_idx].position.add(urandom_vector(dome.position.distance_to(me.position)/1000));
+                }
+            }
+            
+            var forward = mat_vector_product(this.rotation, Y_DIR)
+                .dot(me.position.subtract(this.position)) > 0;
+
+
+            if (this.position.distance_to(predicted_location) < 1000
+                && (!this.is_small || forward)) {
+                lazer_direction = predicted_location.subtract(start_pos)._normalize()
+                
+                var hit = find_first_hit(start_pos.add(lazer_direction.scalar_multiply(4)), lazer_direction.scalar_multiply(10), x => x == this)
+                if (!hit[0]) {
+                    particles.push(new Lazer(start_pos,
+                                             lazer_direction,
+                                             this.rotation,
+                                             false,
+                                             this.damage));
+                }
+            }
+        }
+        
+        var away = objects.filter(x=> x instanceof Enemy && x.position.distance_to(this.position) < 100)
+            .map(x=>[x.position.distance_to(this.position), x.position])
+            .sort((a,b)=>a[0]-b[0]);
+        away = away.length > 1 ? away[1][1].subtract(this.position)._normalize().scalar_multiply(.2) : ZERO;
+        this.engines = 0.99*this.engines + 0.01*this.sprites.filter(x=>x._kind == 2).length;
+
+        var should_look_dir = this.goal.position.subtract(this.position)._normalize().subtract(away);
+        var forward_dir = mat_vector_product(this.rotation, Y_DIR);
+        var look = forward_dir.lerp(should_look_dir, .01/this.mass*dt*this.engines)
+
+        this.rotation = look_at(look, mat_vector_product(this.rotation, Z_DIR));
+        this.velocity = mat_vector_product(this.rotation, Y_DIR).scalar_multiply(speed*this.engines);
+        this.position = this.position.add(this.velocity.scalar_multiply(dt));
+    }
+}
+
+
+class Hit extends ParticleSystem {
+    constructor(pos, count, age, size, normal, speed, get_new_pos, color) {
+        super(count, age, [.6, .5*(size||1), 0], color||[1, .4, 0]);
+        this.normal = normal;
+        this.axis = matrix_rotate_xz(urandom()*10);
+        this.pos = pos;
+        this.speed = speed||1;
+        this.get_new_pos = get_new_pos;
+        set_timeout(_=> this.dead = true
+                    , age*900);
+    }
+    particle_start() {
+        if (this.normal) {
+            var r;
+            while ((r = urandom_vector()._normalize()).dot(this.normal) < .5+urandom()/3 && urandom() < .9);
+            return [this.pos.add(r),
+                    r.scalar_multiply(Math.random()*.1*this.speed)]
+        } else {
+            return [this.pos.add(urandom_vector()),
+                    mat_vector_product(this.axis,urandom_vector()._normalize().vector_multiply(NewVector(1,1,.1)).scalar_multiply(Math.sin(urandom()))).scalar_multiply(this.speed)]
+        }
+    }
+    update(dt) {
+        super.update(dt);
+        //this.position = this.position.add(this.velocity.scalar_multiply(dt))
+        this.get_new_pos && (this.position = this.get_new_pos());
+    }
+}
+
+
+class Tracer extends ParticleSystem {
+    constructor(target, age, quantity, offset, color, size, rand, graphicslevel, transparent) {
+        super(80*quantity, age, [transparent||.8, size/10, 1], color);
+        this.size=size
+
+        this.target = target;
+        this.max_spawn = quantity/age;
+        this.use_random = 1;
+        this.position = ZERO;
+        this.last_target_position = this.target.position;
+        this.offset = offset || ZERO;
+        this.rand = rand;
+        this.graphicslevel = graphicslevel||9;
+    }
+
+    particle_start(dt, max) {
+        var v1 = mat_vector_product(this.target.rotation, Z_DIR).scalar_multiply(dt/100);
+        var v0 = mat_vector_product(this.target.rotation, this.offset);
+        return [this.last_target_position.lerp(this.target.position.add(v0), this.counter++/(max)+(this.graphicslevel==9)),
+                v1.scalar_multiply(this.rand*Math.random())];
+    }
+    render() {
+        if (!this.target.count || this.target.count == this.target.a_positions.length/3)
+            super.render();
+    }
+    
+    
+    update(dt) {
+        //if (this.graphicslevel == 3) console.log('start',this.target.position.add(mat_vector_product(this.target.rotation, this.offset)));
+        this.counter = 0;
+        super.update(dt);
+        this.dead |= GRAPHICS > this.graphicslevel;
+        if (this.target.dead || this.target._parent.dead && !this.fakedead) {
+            this.fakedead = true;
+            set_timeout(_ => this.dead = true, 10000);
+        }
+        // This is so ugly ...
+        if (this.target._parent == me) {
+            this.settings[1] = this.size/20 * (1+40*this.target._parent.velocity.vector_length()/settings._speed);
+        }
+        var v0 = mat_vector_product(this.target.rotation, this.offset);
+        this.last_target_position = this.target.position.add(v0);
+        //if (this.graphicslevel == 3) console.log('end',this.last_target_position);
+    }
+}
+
+class HUDTracker extends Sprite {
+    constructor(base_tracker) {
+        super([[0,0,0], [0,0,0]], ZERO, 0, 0, 6+base_tracker*3)
+        this.target = base_tracker ? dome : undefined;
+        this.type = gl.POINTS;
+        this.last_position = undefined;
+    }
+    update(dt) {
+        this.target = (this.target && !this.target.dead && this.target) || objects.filter(x=> x instanceof Enemy && (!x.tracked || x.tracked.target != x))[0];
+        if (this.target) {
+            this.target.tracked = this;
+
+            var predicted_location = this.target.position;
+            var start_pos = me.position;
+            var vel = lazerspeed(settings._damage)*1000;
+            range(5).map(_=> {
+                var time_to_hit = predicted_location.distance_to(start_pos)/vel;
+                predicted_location = this.target.position.add((this.target.velocity||ZERO).scalar_multiply(time_to_hit*1000));
+            });
+                
+            this.position = predicted_location;//.lerp(this.position, 0);
+        }
+    }
+    render() {
+        if (this.target) super.render()
+    }
+}
+
+class UnderConstruction {
+    constructor(sprite) {
+        this.N = 1;
+        this.l = 0;
+        this.before = this.sprite.a_positions.map(x=>x)
+    }
+
+    update(dt) {
+        if (this.N < this.sprite.b_positions.length){
+            this.l += 1;
+            range(3).map(i=> {
+                var prev = this.sprite.b_positions[this.N-1][2-i];
+                var next = this.sprite.b_positions[this.N][i];
+                console.log(this.N);
+                var d = prev.distance_to(next);
+                if (d > 0) {
+                    this.sprite.a_positions.set(prev.lerp(next, clamp(this.l,0,1))._xyz(),
+                                                9*this.N+3*i);
+                    this.sprite.rebuffer()
+                }
+            })
+        }
+    }
+
+    render() {
+        this.sprite.count = clamp(this.N+1,0,this.sprite.b_positions.length)*3;
+        if (this.l >= 1) {
+            this.N += 1;
+            this.l = 0;
+        }
+        
+        this.sprite.position = NewVector(0, 28, 0);
+        //this.sprite.rotation = multiply(matrix_rotate_xz(0.01),
+        //                                multiply(matrix_rotate_xy(-0.01),
+        //                                         this.sprite.rotation))
+        this.sprite.render()
+    }
+}
+
+function make_builder(obj, sp) {
+    var counts = sp.sprites.map(x=>(x._texture=1)&&(x.a_positions.length/3));
+    
+    return _ => {
+        var end_tri   = (sum(counts) * obj.ready/100) | 0;
+        sp.sprites.map((x,i)=> {
+            x.count = Math.min(counts[i], end_tri+36*3*5);
+            x._first = clamp((0|(end_tri/36))*36-36*3*5, 0, counts[i]);
+            obj.sprites[i].count = Math.min(counts[i]/36, end_tri/36);
+
+            end_tri -= counts[i];
+        });
+
+        sp.position = obj.position;
+        sp.rotation = multiply(obj.rotation,multiply(matrix_rotate_xy(Math.PI/2),
+                                                     matrix_rotate_yz(-Math.PI/2)
+                                                     ));
+    }
+}
+
+function wireframe(obj) {
+    var sp = new Ship(obj.sprites.map(sprite => {
+        var out = []
+        var did = {};
+        sprite.b_positions.map(x=> {
+            [[x[0],x[1]], [x[1],x[2]], [x[2],x[0]]].map(ab => {
+                var id = ab[0]._xyz()+ab[1]._xyz();
+                if (!did[id]) {
+                    did[id] = 1;
+                    var sp = load2(cube, 0, NewVector(.003, ab[0].distance_to(ab[1])/20, .003));
+                    var rot = look_at(ab[0].subtract(ab[1]), normal_to_plane(...x))
+                    sp[2] = sp[2].map(x =>
+                                      x.map(y=>
+                                            mat_vector_product(sprite.orig_rot,
+                                                               mat_vector_product(rot, y).add(reduce_mean(ab).scalar_multiply(1))).add(mat_vector_product(matrix_rotate_xy(-Math.PI/2), sprite.orig_pos)))) // todo is math.pi/2 right?
+                    
+                    sp[0] = sp[2].flat().map(x=>x._xyz()).flat()
+                    out.push(sp);
+                }
+                
+            })
+        })
+        
+        //var sp = load2(cube, 0, .1)
+        return transpose(out).map(x=>x.flat(1));
+    }), ZERO, IDENTITY)
+    
+    sp.update = make_builder(obj, sp)
+    console.log(obj);
+    sp.sprites.map(sprite => {
+        var old_render = sprite.render.bind(sprite);
+        sprite.render = () => {
+            gl.uniform1f(locations.u_alpha, -9);
+            old_render();
+            sprite._first = clamp(sprite.count,0,1e6)*3;
+            sprite.count = (sprite.a_positions.length/3)-sprite._first;
+            gl.uniform1f(locations.u_alpha, -.4);
+            old_render();
+            gl.uniform1f(locations.u_alpha, 0);
+        }
+    })
+    return sp;
+}
+
+
+class Siphon extends ParticleSystem {
+    particle_start() {
+        return [NewVector(Math.random()*900,0,0),
+                NewVector(1,0,0).add(urandom_vector(.2))]
+    }
+}
+
+
+class Energy extends ParticleSystem {
+    constructor(_parent) {
+        super(30, 2, [1, .9, 0], [.2, .4, 1], true);
+        this._parent = _parent;
+    }
+    particle_start() {
+        this.dead = this._parent.dead;
+        this.fakedead = this._parent.fakedead;
+        return [this._parent.position, urandom_vector()._normalize().scalar_multiply(.1)]
+    }
+}
+
+class EnergyObj {
+    constructor(position) {
+        this.position = position
+        particles.push(new Energy(this));
+        this.energy = 1;
+        setTimeout(_=>this.dead=1,30000)
+    }
+    update() {
+        (this.fakedead = (this.energy < 0)) && setTimeout(_=>this.dead=1,2000)
+        
+    }
+    render() {}
+}
+
+class Tractor extends ParticleSystem {
+    constructor() {
+        super(2000, 2, [1, .1, 0], [.2, .4, 1.0], true);
+        this.target = undefined;
+        this.max_spawn = 100;
+    }
+    update(dt) {
+        if (screen != 0) return;
+        super.update(dt);
+        var ok = 1;
+        if (this.target && !this.target.dead) {
+            this.position = me.position;
+            this.rotation = IDENTITY.map(x=>x);
+            this.rotation[5] = this.position.distance_to(this.target.position);;
+            this.rotation = multiply(look_at(me.position.subtract(this.target.position),
+                                             Z_DIR),
+                                     this.rotation);
+
+            if (this.target.energy > 0 && energy < 10) {
+                add_energy(dt/1000);
+                
+                this.target.energy -= dt/1000
+            } else {
+                ok = 0;
+            }
+        }
+        if (ok) {
+            this.target = objects.filter(x=>x instanceof EnergyObj)
+                .map(x=>[x.position.distance_to(me.position), x])
+                .sort((a,b) => a[0]-b[0])[0];
+            if (!this.target) return;
+            this.target = this.target[1];
+        }
+        
+        this.count = Math.min(this.target.position.distance_to(me.position)*5,1000);
+        if (this.target.position.distance_to(me.position) > 200) {
+            this.target = 0;
+        }
+        
+    }
+    particle_start() {
+        if (this.target && energy < 10 && this.target.energy > 0) {
+            play(sounds._gather);            
+            return [NewVector(0,-(Math.random()**2),0).add(urandom_vector(.002)),
+                    NewVector(0,-.001,0)]
+        } else {
+            return [NewVector(1e6,0,0), ZERO];
+        }
+    }
+}
+
+function add_energy(e) {
+    var before = energy;
+    energy = clamp(energy+e,0,10)
+    if (energy == 10 && before < 10) {
+        scroll(cP, i=>35-1.8*i)
+        setTimeout(_=> scroll(cP, i=>35-1.8*(30-i)) , 10000)
+    }
+    cR.style.background = `linear-gradient(to right,#35f 0%,#35f ${energy*10}%,#236 ${energy*10}%,#236 100%`
+    return energy;
+}
+
+function do_transfer(which, skip) {
+    if ((skip || energy > 0) && ships[which].ready < 100) {
+        setTimeout(_=>do_transfer(which, skip), 30);
+        add_energy(-.005);
+        ships[which].ready += .06 + ((skip||0)*.3);
+    }
+}
+
+
+var timeout_queue;
+var total_time = 0;
+function set_timeout(fn, when) {
+    timeout_queue.push([when+total_time, fn])
+}
+
+function check_timers(dt) {
+    total_time += dt;
+    var this_queue = timeout_queue;
+    timeout_queue = []
+    this_queue.map(x=> 
+                   (x[0] < total_time) ? x[1]() : timeout_queue.push(x)
+                  );
+}
+
+var starfield;
+function setup_game() {
+    starfield = new Sprite(load2(cube, 0, 1000), ZERO, 0, 0, 15);
+}
+
+</script><script>
+
+/* ===== Inlined webgl.js ===== */
+// main.js -- the main init and game loop
+
+// Copyright (C) 2020, Nicholas Carlini <nicholas@carlini.com>.
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+
+var gl;
+
+var objects;
+var particles;
+var camera;
+var camera_position;
+var camera_rotation;
+var proj_mat;
+var star;
+var dome;
+var energy;
+var look_goal;
+
+var program;
+var locations;
+var has_left = false;
+
+var keys = {};
+//var keyhist = 0;
+var sensitivity = 3;
+
+
+/* Main game setup.
+ * When the game loads, hook the keybindings and start the game loop.
+ */
+function main_run() {
+    setup_utils()
+    setup_graphics()
+    setup_game()
+    setup_ships();
+    main_go()
+}
+
+var mouse_x;
+var mouse_y;
+var screen_x;
+var screen_y;
+var initial_time;
+
+
+function main_go() {
+
+    initial_time = +new Date();
+    window.onkeydown = e => keys[e.key] = true;
+    //window.onkeydown = e => {
+    //    keys[e.key] = true;
+    //    keyhist = (keyhist<<7) ^ e.keyCode
+    //}
+    window.onkeyup = e => delete keys[e.key];
+
+    window.onmousedown = _ => document.pointerLockElement == cQ || cQ.requestPointerLock();
+    
+    screen_x = document.body.offsetWidth;
+    screen_y = document.body.offsetHeight;
+    
+    document.onpointerlockchange = _ => {
+
+        mouse_x = screen_x/2;
+        mouse_y = screen_y*.4 || 200;
+
+        cQ.onmousemove = (document.pointerLockElement == cQ) && (e => {
+            mouse_y = clamp(mouse_y+e.movementY/sensitivity,0,screen_y);
+            mouse_x = clamp(mouse_x+e.movementX/sensitivity,0,screen_x);
+        });
+        cQ.onmousedown = k => keys[0] = true; 
+        cQ.onmouseup = k => delete keys[0];
+    }
+
+    reset();
+    game_step(1);
+    
+}
+
+var wave_counter = 0;
+var quantity = [
+    [1, 0, 0],
+    [2, 0, 0],
+    [0, 1, 0],
+    [2, 3, 0],
+    [0, 0, 1],
+    [2, 2, 1],
+];
+var stats = [[4, 10, .1, 1],
+             [3, 15, .02, 3],
+             [5, 32, .02, 3]];
+
+function wave() {
+    waiting_for_wave = false;
+    var amt = quantity.shift();
+    stats.map((x,i) => {
+        range(amt[i]).map(y=> {
+            objects.push(new Enemy(...x, urandom_vector(1000).add(dome.position)));
+        });
+    })
+    amt[0] += 1
+    amt[1] += 1
+    amt[2] += 1
+    quantity.push(amt)
+}
+
+/* Reset the level and start up a new camera.
+ */
+function reset() {
+    camera = Camera();
+    camera_position = ZERO;
+    camera_rotation = IDENTITY;
+    objects = [];
+    particles = [];
+    timeout_queue = [];
+    DT_MUL = .8;
+
+    add_energy(energy=1);
+    particles.push(tractor = new Tractor());
+
+    objects.push(starfield);
+
+    //dome = sphere();
+    dome = new Ship(all_ships[6], NewVector(0,-500,-50), IDENTITY);
+    //dome.sprites.map(x=>x.health = 3);
+
+    dome.update = dt => {
+        if (dome.sprites.length < 80) {
+            // alternate game lose reason
+            console.log("DESTROY");
+            screen = 3;
+            cW.style.display = "none"
+            shoot_lr = last_now; // this now holds time since death
+            destroy(dome, range(dome.sprites.length))
+
+            var op = 5;
+            var ii = setInterval(_ => {
+                if (op < 0) {
+                    timeout_queue = []
+                    document.exitPointerLock();
+                    qQ.style.display = "block"
+                    qQ.innerHTML = `Game Over.<br><br>You survived for ${0|(new Date()-initial_time)/1000}^seconds<br><a href="#" onclick="location.reload()">Play Again?</a>`;
+                    clearInterval(ii);
+                } else {
+                    cQ.style.opacity = op-=.005
+                }
+            }, 10)
+        }
+        dome.rotation = multiply(matrix_rotate_xy(.0001*dt),dome.rotation);
+        if (screen != 4 && screen != 1)
+            dome.position = mat_vector_product(matrix_rotate_xy(.00001*dt),dome.position.subtract(star.position)).add(star.position)
+    }
+    objects.push(dome);
+
+    hud = []
+    hud.push(new Sprite([[100,0,0], [0,0,0]], ZERO, 0, 0, 5));
+    hud[0].type = gl.POINTS;
+
+    // Create the glitter, make it feel like I'm really moving
+    var points = range(10).map(_=> urandom_vector(32)._xyz()).flat();
+    glitter = new Sprite([points, Array(10).fill([.3, .4, .9]).flat()], ZERO, IDENTITY, [.4,.05,.5], 2);
+    glitter.type = gl.POINTS;
+    range(10).map(x=>glitter.a_settings[x*3+1] = 1e6);
+    glitter.rebuffer()
+
+    star = new ParticleSystem(1400 - GRAPHICS*200, 5, [1, 5, 0], [1, .8, .3], true);
+    star.position = NewVector(0,0,100);
+    // Push the sun
+    particles.unshift(star);
+
+    range(30).map(_=> {
+        objects.push(new Sprite(load2(nicecube, 0, 6.5), NewVector(0,0,100), look_at(urandom_vector(), urandom_vector()), [10,10,10]));
+    })
+    
+    objects.push(...ships)
+    
+    ships = [0,0,0,0];
+    wireframes = [];
+    load_screen(1);
+}
+
+function scroll(obj, fn) {
+    range(30).map(i=> setTimeout(_ => obj.style.right=fn(i)+"vw", 16*i))
+}
+
+
+var wireframes;
+function load_ships(wire) {
+    var sprites = [all_ships[2],
+                   all_ships[3],
+                   all_ships[1],
+                   all_ships[0],
+                  ];
+    ships = ships.map((x,i) => {
+        if (x && x.sprites.length) {
+            x.rotation = IDENTITY;
+            x.dead = 0;
+            x.sprites.map(x=>x._maketrace());
+            return x;
+        } else {
+            var ship = new Ship(sprites[i], ZERO,
+                                matrix_rotate_xz(Math.PI/2))
+            glob_ship = ship;
+            if (wireframes[i]) {
+                wireframes[i].update = make_builder(ship, wireframes[i]);
+            }
+            ship.ready = 0;
+            do_transfer(0, 1);
+            ship.sprites.map(x=>x._maketrace());
+            return ship;
+        }
+    })
+    if (!wireframes[0]) {
+        wireframes = ships.map(wireframe)
+    }
+    wireframes.map(x=>x.dead = false);
+}
+
+function load_screen(first) {
+    if (!first) cW.style.display = "block"
+    timeout_queue = [];
+    load_ships(first);
+    
+    ships.prev_which = ships.which =ships.spin = ships.spinGoal = ships.spinTime = 0;
+    if (first)
+        ships[0].ready = 100;
+    me = ships[0]
+    particles = particles.filter(x=>!(x instanceof Hit));
+
+    objects.push(...wireframes)
+    objects.push(...ships);
+    screen = 1;
+    velocity=me.velocity=ZERO;
+    me.rotation = IDENTITY;
+}
+
+function start(which) {
+    screen = 0;
+    me = ships[which]
+    scroll(cZ, i=>-i)
+    //range(30).map(i=> setTimeout(_ => cZ.style.right=-i+"vw", 16*i))
+
+    ships.map(x=>x.dead = true)
+    wireframes.map(x=>x.dead = true)
+    me.dead = false;
+    
+    objects.map(x=> x.tracked = false)
+
+    // Smoke comes from my ship
+    particles.push(new Tracer(me, .5, 10, NewVector( 3.7/(1+(which>1)), -.4,-.4), [.1,.1,.1], .2, 0, 2, .6));
+    particles.push(new Tracer(me, .5, 10, NewVector(-3.7/(1+(which>1)),-.4,-.4), [.1,.1,.1], .2, 0, 2, .6));
+    
+    hud = [hud[0]]
+    // Track up to 20 enemies at a time
+    range(20).map(_=>
+                 hud.push(new HUDTracker(!_)));
+
+    // Go red when I get hit
+    hud.push(new DamageEffect());
+}
+
+var damage = 0;
+var damage2 = 0;
+var GRAPHICS = 0;
+
+class RunningAverage { // DEBUGONLY
+    constructor(n) { // DEBUGONLY
+        this.count = 0; // DEBUGONLY
+        this.n = n; // DEBUGONLY
+    } // DEBUGONLY
+    update(val) { // DEBUGONLY
+        this.count = this.count * (1 - 1./this.n) + val; // DEBUGONLY
+        return Math.round(this.count/this.n*100)/100; // DEBUGONLY
+    } // DEBUGONLY
+} // DEBUGONLY
+
+var fps = new RunningAverage(10); // DEBUGONLY
+var actual_fps = new RunningAverage(10); // DEBUGONLY
+var running_sprites = new RunningAverage(10); // DEBUGONLY
+var running_verts = new RunningAverage(10); // DEBUGONLY
+var last_now = 0;
+var last_gunshot = 0;
+var speed = 0;
+var global_screen_color;
+var me;
+
+var minor_badness = 0; //DEBUGONLY
+var total_badness = 0; //DEBUGONLY
+
+var shoot_lr = 0;
+
+var frame;
+
+var velocity = ZERO;
+
+var hud;
+var glitter;
+var ships = [];
+var tractor;
+
+var screen = 1;
+
+var settings = {}
+
+var all_settings = {_turnrate: [5, 10, 5, 5,],
+                    _momentum: [.1, .01, .15, .1,],
+                    _speed:    [2.5, 1, 3, 4,],
+                    _health:   [1.5, 6, .25, 1,],
+                    _damage:   [.8, 2, 5, 1.1,],
+                    _firerate: [150, 600, 2000, 150,],
+                    _energy:   [10, 10, 10, 10,],
+                    _camera:   [1, 1.5, 1, 1,],}
+
+var DT_MUL;
+var waiting_for_wave;
+var ship_to_distant_position;
+
+var local_time = 0;
+
+/* Main game loop.
+ * This is quite ugly in order to be nicely compressable, 
+ * as we do all of the work right in this loop top-to-bottom.
+ * (Insetad of just a simple update-render loop.)
+ */
+function game_step(now) {
+    if (now < 1000) {
+        cQ.style.animation = "z 3s";
+    }
+    if (now > 1000 && !sounds) {
+        setup_audio();
+        scroll(cZ, i=>-(30-i))
+        cW.style.display = "block"
+    }
+    frame = requestAnimationFrame(game_step);
+
+    if (objects.filter(x=>x instanceof Enemy).length == 0 && !waiting_for_wave && screen == 0) {
+        waiting_for_wave = true;
+        setTimeout(wave, 5000)
+    }
+
+    
+    var dt = Math.min(now-last_now,50);
+    if (screen > 1) dt *= (DT_MUL*=.99)+.05;
+
+
+    check_timers(dt);
+
+    var mouse_dx = (mouse_x/screen_x-.5);
+    var mouse_dy = (.5-mouse_y/screen_y);
+    
+    
+    var mouse_position_3d = hud[0].position = mat_vector_product(proj_mat||IDENTITY, NewVector(mouse_dx*2e5, mouse_dy*2e5, 1e5, 1e5)).add(camera_position);
+
+    var godirs = [];
+    for (var key in keys) {
+        var godir = Math.max("wdsa".indexOf(key),
+                             "URDL".indexOf(key[5]||key[0]))
+        if (godir >=0 ) {
+            godirs.push(godir);
+        }
+        
+        var del = 0;
+        if (key == "=" || key == "+") {
+            del = 1;
+            sensitivity /= 1.2;
+        }
+        if (key == "-") {
+            del = 1
+            sensitivity *= 1.2;
+        }
+        if (screen == 1 && key != 0 || del) delete keys[key];
+    }
+
+    local_time += dt;
+
+
+    //if (keys['q']) damage2 = 3; // DEBUGONLY
+    
+    if (screen == 0) {
+        // Normal gameplay screen
+        var f = x=>Math.abs(x)**1.4 * Math.sign(x)/settings._turnrate;
+        me.rotation = [me.rotation,
+                       matrix_rotate_xy(f(mouse_x/screen_x-.5)),
+                       matrix_rotate_yz(-f(mouse_y/screen_y-.4))].reduce(multiply);
+
+        // Figure out how the player wants to move.
+        var move_dir = godirs.map(godir => 
+                                  mat_vector_product(multiply(me.rotation,
+                                                              matrix_rotate_xy(Math.PI/2*godir)),
+                                                     Y_DIR.scalar_multiply((godir!=2)+.1),
+                                                     // this isn't an argument, but let's save space by passing it anyway
+                                                     speed += (speed < settings._momentum)*(settings._momentum/100))
+                                 )
+        if (move_dir.length) {
+            velocity = velocity.add(reduce_mean(move_dir).scalar_multiply((speed*settings._speed)/16));
+        } else {
+            speed = 0;
+        }
+        me.velocity = (velocity = velocity.scalar_multiply(1-settings._momentum)).copy();
+
+
+        var is_hit = find_first_hit(me.position, velocity._normalize(), x=>x instanceof Enemy);
+        if (is_hit[3] < 3) {
+            damage2 = 1+settings._health/4;
+            destroy(is_hit[0], range(is_hit[0].sprites.length))
+        }
+
+        me.position = me.position.add(velocity.scalar_multiply(16.7));
+
+
+        var me_proj_forward = me.velocity.scalar_multiply(40)
+            .project_onto(mat_vector_product(camera_rotation, Y_DIR))
+            .add(me.velocity.scalar_multiply(20));
+        camera_position = camera_position.lerp(me.position.add(me_proj_forward).add(mat_vector_product(me.rotation, NewVector(0,-2*2.3*settings._camera,1.5*3*settings._camera**.5))), .2/settings._camera)
+        
+        camera_rotation = look_at((look_goal=me.position.add(mat_vector_product(me.rotation, Y_DIR.scalar_multiply(10)))).subtract(camera_position),
+                                  mat_vector_product(me.rotation, Z_DIR));
+
+        if (damage2 > .75+settings._health/5) {
+            destroy(me, range(me.sprites.length), 1);
+        }
+
+        
+        ship_to_distant_position = mouse_position_3d.subtract(me.position);
+        
+        if (keys[0]) {
+            if (now-last_gunshot > settings._firerate) {
+                var doit = _=> {
+                    var offset = mat_vector_product(me.rotation, X_DIR).scalar_multiply((settings._damage == 5 ? 0 : 4.5)*(settings._damage == .8 ? [-1,0,1,0][shoot_lr%4] : (shoot_lr%2)-.5));
+                    ship_to_distant_position = ship_to_distant_position.subtract(offset)
+                    var towards = mouse_position_3d.subtract(me.position.add(offset))._normalize();
+                    if (settings._damage == 5) {
+                        var others = objects.filter(x => x instanceof Enemy && x.is_small).map(x=> [x.position.subtract(camera_position)._normalize().dot(mouse_position_3d.subtract(camera_position)._normalize()), x]).filter(x=>x[0]>.993);
+                        console.log(JSON.stringify(others.map(x=>x[0])));
+                        if (others[0]) towards = others[0][1].position.subtract(me.position.add(offset));
+                        ship_to_distant_position = towards;
+                    }
+                    var rot = look_at(towards, Z_DIR);
+                    
+                    particles.push(new Lazer(me.position.add(offset),
+                                             ship_to_distant_position._normalize(),
+                                             rot,
+                                             true,
+                                             settings._damage));
+                }
+
+                if (settings._firerate > 1000) {
+                    play(sounds.warmup);
+                    setTimeout(_=>{play(sounds.lazer2);play(sounds.hit); doit()}, 300);
+                } else {
+                    play(settings._firerate > 200 ? sounds.lazer2 : sounds.lazer)
+                    doit();
+                }
+                last_gunshot = now;
+                shoot_lr++;
+
+                objects.map(x => {
+                    if (x.position.subtract(me.position)._normalize().dot(ship_to_distant_position._normalize()) > .95) {
+                        x.annoyed = now;
+                    }
+                })
+                
+            }
+        }
+
+        if (me.position.distance_to(dome.position) < 120 && has_left) {
+            setTimeout(_=>scroll(cZ, i=>-(30-i)), 2000)
+            screen = 4
+        } if (me.position.distance_to(dome.position) > 140) {
+            has_left = true;
+        }
+
+        
+    } else if (screen == 1) {
+        //if (keyhist == -1735204031) { // RIP IDKFA.
+        //    ships.map(x=>x.ready = 100);
+        //}
+        
+        // Ship selection screen
+        objects.map(x=> x instanceof Enemy && (x.annoyed = 0));
+        global_screen_color=[0,0,0]
+        camera_position = dome.position.add(NewVector(0, -30, 5))
+        camera_rotation = look_at(look_goal = dome.position.add(NewVector(-8,0,0)).subtract(camera_position), Z_DIR);
+        has_left = false;
+
+
+
+        [settings._speed/2, 10/settings._turnrate*(1-settings._momentum), ((settings._damage**2)/settings._firerate*200), settings._health**.5].map((x,i) => {
+            document.body.getElementsByClassName("a")[i].style.width=(x*4)+"vw";
+        });
+        
+        var is_ready = false;
+        if (ships[ships.which].ready > 99.9) {
+            ships[ships.which].ready = 100
+            cU.innerHTML = "Launch";
+            is_ready = true;
+        } else {
+            cU.innerHTML = energy > 0 ? "Construct" : "Insufficient Scraps";
+        }
+        cY.innerHTML= "("+ships[ships.which].ready.toFixed(1)+"% Complete)"
+        
+        ships.spinTime = clamp(ships.spinTime+dt/1000, 0, 1);
+        
+        var spin_time = (1-Math.cos(ships.spinTime*Math.PI))/2
+        var cur_spin = (1-spin_time)*ships.spin + spin_time*ships.spinGoal;
+        ships.map((x, i)=> {
+            x.position = dome.position.add(mat_vector_product(matrix_rotate_xy(i*Math.PI/2 + cur_spin),NewVector(0,-10,0)))
+        });
+        
+
+        godirs.map(godir => {
+            if (godir == 3 || godir == 1) {
+                ships.prev_which = ships.which;
+                ships.spin = cur_spin;
+                ships.spinGoal = (ships.spinGoal-Math.PI/2*(godir-2));
+                ships.spinTime = .05;
+                ships.which = (ships.which+godir+2)%4;
+            }
+        });
+
+        var pos = cU.getBoundingClientRect();
+        var over = false;
+        if (pos.x < mouse_x && mouse_x < pos.right &&
+            pos.y < mouse_y && mouse_y < pos.bottom) {
+            over = true;
+            cU.style.background = is_ready ? "#44f" : (energy > 0 ? "#4f4" : "#777");
+        } else {
+            cU.style.background = is_ready ? "#228" : (energy > 0 ? "#282" : "#444");
+        }
+
+        if (keys[' ']) start(ships.which);
+        if (keys[0]) {
+
+            if (over) {
+                if (is_ready) {
+                    start(ships.which);
+                    play(sounds.hit);
+                } else {
+                    if (energy > 0)
+                        do_transfer(ships.which);
+                    else {
+                        play(sounds._nope);
+                        setTimeout(_=>play(sounds._nope), 160)
+                    }
+                }
+                cU.style.background = "#fff";
+            }
+            
+            var dists = ships.map(ship => mouse_position_3d.subtract(camera_position)._normalize().cross(ship.position.subtract(camera_position)._normalize()).vector_length()); // can't use normal_to_plane because of normalize()
+            if (Math.min(...dists) < .1) {
+                ships.prev_which = ships.which;
+                dists.map((x, i)=> (x==Math.min(...dists)) && (ships.spinGoal = 2*Math.PI-(ships.which=i)*Math.PI/2));
+                delete keys[0];
+                ships.spin = (cur_spin+Math.PI*2)%(Math.PI*2);
+
+                ships.spinGoal -= Math.PI*2*((ships.spinGoal-ships.spin)>Math.PI);
+
+                ships.spinTime = 0;
+
+                if ((ships.spinGoal - ships.spin)**2 < .01) {
+                    if (ships[ships.which].ready > 99) {
+                        start(ships.which)
+                        play(sounds.hit);
+                    } else {
+                        play(sounds._nope);
+                        setTimeout(_=>play(sounds._nope), 160)
+                    }
+                }
+
+            }
+        }
+        Object.keys(all_settings).map(k=> settings[k] = all_settings[k][ships.prev_which]*(1-ships.spinTime) + all_settings[k][ships.which]*ships.spinTime)
+
+        
+        ships.map(x=> x.rotation = multiply(matrix_rotate_xy(.2/dt), x.rotation))
+    } else if (screen == 2) {
+        // player dead screen;
+        camera_position = camera_position.add(mat_vector_product(camera_rotation, NewVector(-.05,-.05,0).scalar_multiply(9**(DT_MUL-1)*(1-DT_MUL)*10)));
+        var next_forward = me.position.add(mat_vector_product(me.rotation, Y_DIR.scalar_multiply(10))).lerp(me.position, 1-DT_MUL).subtract(camera_position);
+        camera_rotation = look_at(next_forward,
+                                  mat_vector_product(me.rotation, Z_DIR));
+        me.ready = 0
+        damage *= .9;
+    } else if (screen == 3) {
+        // base dead screen
+        cZ.style.display="none"
+        var time_since_death = (now-shoot_lr)/1000;
+        var ss = x => x < 1 ? (x>0) * (6*(x**5) -15*(x**4)+10*(x**3)) : 1;
+        var dist_to = ss(dome.position.distance_to(camera_position)/500-.1)*80;
+        camera_position = dome.position.subtract(camera_position) // camera -> dome vector
+            ._normalize().scalar_multiply(dist_to*ss(time_since_death/5)) // move closer
+            .add(mat_vector_product(camera_rotation,
+                                    NewVector(ss(time_since_death/5)*10,
+                                              -3*ss(time_since_death/10),
+                                              0)))
+            .scalar_multiply(DT_MUL+.02) // slow down over time
+            .add(camera_position);
+        camera_rotation = look_at(look_goal.lerp(dome.position, ss(time_since_death/2)).subtract(camera_position),
+                                  mat_vector_product(camera_rotation, Z_DIR));
+    } else if (screen == 4) {
+        me.position = me.position.moveto(dome.position.subtract(Y_DIR.scalar_multiply(10)), 1)
+
+        var target = dome.position.add(NewVector(0, -30, 5));
+        camera_position = camera_position.moveto(target, 1);
+        if (camera_position.distance_to(target) < .01) {
+            load_screen()
+        }
+        
+        var goal_look = dome.position.add(NewVector(-8,0,0));
+        camera_rotation = look_at(mat_vector_product(camera_rotation, Y_DIR.scalar_multiply(10)).add(camera_position).lerp(goal_look, .1).subtract(camera_position), mat_vector_product(camera_rotation, Z_DIR).lerp(Z_DIR, .1))
+        
+    }
+
+    damage = clamp(damage-dt/1000, 0, 8);
+    damage2 *= .99-settings._health/200;
+    if (DT_MUL > .2 && screen != 1 && screen != 4) {
+        global_screen_color = [1, 0, (damage+damage2)/5];
+    }
+    
+    // save camera
+    var me_rot = me.rotation;
+
+    starfield.position = camera_position;
+
+
+    var shake = clamp(damage2*damage2/20/settings._health,0,.1)
+    camera_rotation = [camera_rotation,
+                       matrix_rotate_xy(urandom()*shake),
+                       matrix_rotate_yz(urandom()*shake),
+                       matrix_rotate_xz(urandom()*shake)].reduce(multiply)
+
+    if (screen == 0) {
+        me.rotation = multiply(me.rotation, matrix_rotate_xz((mouse_x/screen_x-.5)/settings._turnrate*10));
+    }
+
+    objects.map(x=> x.sprites && x.position.distance_to(star.position) < 100 && destroy(x, range(x.sprites.length), x == me))
+
+    // todo space can cut the x.update && if all classes have an update method
+    objects.map(x=>x.update && x.update(dt));
+    particles.map(x=>x.update(dt));
+    hud.map(x=>x.update && x.update(dt));
+    objects.map(x=> (x instanceof ParticleSystem) && raise)// DEBUGONLY
+    particles.map(x=> (x instanceof ParticleSystem) || raise)// DEBUGONLY
+    
+    // And finally render the scene 
+    camera();
+    
+    // restore camera
+    me.rotation = me_rot;
+
+    objects = objects.filter(x=>!x.dead);
+    particles = particles.filter(x=>!x.dead);
+
+    minor_badness = .99*minor_badness + .01*((now-last_now) > 17)
+    total_badness = .999 * total_badness + .001*(((now-last_now) > 17) + minor_badness);
+
+    if (total_badness > .15 || minor_badness > .6) {
+        total_badness = minor_badness = 0;
+        set_resolution(GRAPHICS+1)
+        setup_graphics();
+        camera = Camera();
+    }
+    
+
+    document.getElementById("fps").innerText = "ms/frame: " + fps.update(performance.now()-now) + "\nFPS: " + actual_fps.update(1000./(now-last_now)) + "\nparticles: " + PARTS + "\nminor badness: " + Math.round(minor_badness*100)/100 + "\ntotal badness: "+(Math.round(total_badness*100)/100 + "\ndamage: " + Math.round(damage*100)/100 + "\ndamage2: " + Math.round(damage2*100)/100); // DEBUGONLY
+    PARTS = 0; // DEBUGONLY
+
+    last_now = now;
+}
+
+function set_resolution(j) {
+    cQ.height = (cQ.width = 3200>>(0|(GRAPHICS=clamp(j,0,6))/2))/window.innerWidth*window.innerHeight;
+}
+
+function setup() {
+    gl = cQ.getContext("webgl2"); // QQ
+    set_resolution(2);
+    main_run();
+}
+
+window.onload = _=>setTimeout(setup, 1)
+
+</script>
+</html>
